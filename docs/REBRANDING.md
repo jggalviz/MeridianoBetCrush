@@ -114,9 +114,19 @@ el propio origen.
    devolvera el aire dentro de la caja.
    La caja movil apunta al **78 % del ancho del marco** con un tope por el cielo
    real (`--logo-sky`): en telefonos altos manda el 78 % y el logo se apoya sobre
-   la franja de monedas y banderines del marco, justo encima del HUD; en 320 px y
-   en tablets verticales manda el tope y la pegatina se queda con el aire justo,
-   sin tocar la barra superior ni generar scroll horizontal.
+   la franja de monedas y banderines del marco, justo encima del HUD; en 320 px
+   manda el tope y la pegatina se queda con el aire justo, sin tocar la barra
+   superior ni generar scroll horizontal.
+   Entre **600 y 899 px** (tablets verticales y escritorios pequenos con alto de
+   sobra, `min-height: 521px`) el marco se estira hasta la barra superior y su
+   unico cielo es ese 19,87 % del arte, asi que la chapa se quedaba en el 27 % del
+   marco. Ese tramo reserva un aire vertical propio (`--logo-air`: 8 % del alto
+   del escenario, 78 px de techo) que se descuenta del alto libre de la maquina
+   via `--m-w`; la mitad de arriba entra en `--logo-sky` y el logo sube al 36 %
+   del marco (247 px a 768 x 1024, 289 px a 899 x 1200) manteniendo su base, la
+   holgura sobre el HUD y el aire bajo la barra superior. El tablero pierde como
+   mucho un 8 % de ancho en ese tramo; por debajo de 600 px y por encima de
+   900 px no cambia nada.
    La barra del navegador movil usa la meta `theme-color`, ya en rojo de marca:
    `<meta name="theme-color" content="#c8102e" />`.
 

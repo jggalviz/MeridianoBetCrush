@@ -818,6 +818,62 @@ test('la consola y el tablero comparten el mismo eje X en movil', () => {
     'El tope del logo vive en una sola regla, comun a todo el rango movil'
   );
 });
+
+test('el logo recupera presencia en tablets con aire reservado y sin mover su base', () => {
+  const css = read(STYLE_PATH);
+
+  // En tablet vertical (600-899 px, alto de sobra) el marco se estira hasta la
+  // barra superior, asi que el unico cielo del logo es el 19,87 % del arte que
+  // queda sobre las placas del HUD: a 768 x 1024 la chapa medía 192 px, el 27,5 %
+  // del marco, menos que en un telefono de 390 px. Ese tramo reserva un aire
+  // vertical propio que `--m-w` descuenta del alto libre; como la rejilla esta
+  // centrada, la mitad de ese aire sube por encima del marco y entra en
+  // `--logo-sky`, que es quien gobierna el tope de la chapa.
+  const midStart = css.indexOf(
+    '@media (min-width: 600px) and (max-width: 899px) and (min-height: 521px)'
+  );
+  assert.notEqual(midStart, -1, 'El tramo 600-899 px debe declarar su breakpoint');
+  const midBlock = css.slice(midStart, css.indexOf('\n}', midStart) + 2);
+
+  assert.match(
+    midBlock,
+    /--logo-air:\s*clamp\(0px,\s*calc\(100cqh \* 0\.08\),\s*78px\);/,
+    'El aire de la marca se mide con el alto del escenario y lleva techo'
+  );
+  const airRule = midBlock.match(/--logo-air:\s*clamp\(0px,\s*[^,]+,\s*(\d+)px\);/);
+  assert.ok(airRule, 'El aire debe estar acotado por arriba');
+  assert.ok(
+    Number(airRule[1]) <= 96,
+    'El techo del aire no puede comerse el tablero (<= 96 px)'
+  );
+
+  assert.match(
+    midBlock,
+    /--m-w:\s*min\(\s*100cqw,\s*calc\(\(100cqh - var\(--row-gap\) - var\(--logo-air\)\) \/ 1\.2813\)\s*\);/,
+    'El aire se descuenta del alto libre y el ancho del viewport sigue siendo el tope'
+  );
+  assert.match(
+    midBlock,
+    /var\(--row-gap\)/,
+    'La separacion marco-consola se resta una sola vez, con el token de la rejilla'
+  );
+
+  // El aire no toca ni la base del logo (sigue a 0,8013 del marco, por encima
+  // del HUD) ni el `--logo-sky`: es el mismo tope de todo el rango movil, que
+  // ahora recibe mas cielo porque la maquina es mas baja.
+  assert.doesNotMatch(midBlock, /--logo-sky/, 'El cielo se sigue derivando de la geometria real');
+  assert.doesNotMatch(midBlock, /--logo-w/, 'El tope del logo no se duplica en el tramo intermedio');
+  assert.doesNotMatch(midBlock, /\.machine__logo|\.machine__hero|\.hud/, 'El marco, el logo y el HUD no se recolocan aqui');
+
+  // El horizontal bajo queda fuera: ahi manda la regla de `max-height: 520px`,
+  // que comprime la cabecera justo para devolverle alto al dibujo.
+  assert.match(
+    css,
+    /@media \(max-width: 899px\) and \(orientation: landscape\) and \(max-height: 520px\)/,
+    'El modo compacto de paisaje conserva su propia regla'
+  );
+});
+
 test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros quedan fuera de public/', () => {
   // Cada pieza se pinta con `background: url(...) center / contain` sobre una
   // caja con la relacion de su lienzo; si el WebP cambia de medidas, `contain`

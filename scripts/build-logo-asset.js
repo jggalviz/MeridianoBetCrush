@@ -15,17 +15,19 @@
  * El script escribe `public/src/assets/MERIDIANOBET-CRUSH-LOGO.webp` respetando
  * el contrato de `test/frontendAssets.test.js`:
  *   - WebP estatico con alfa real (VP8X + bloque ALPH) y sin bloque ANIM;
- *   - 900 x 450 px, la misma proporcion 2:1 del maestro (el CSS lo pinta como
- *     mucho a ~330 px de ancho, el 78 % del marco en un telefono de 430 px, asi
- *     que 900 cubre pantallas 3x sin reescalar);
+ *   - 900 x 450 px, la misma proporcion 2:1 del maestro. El CSS lo pinta a
+ *     ~330 px de ancho en un telefono de 430 px (78 % del marco) y hasta ~505 px
+ *     en una tablet alta (768 x 1366), asi que 900 cubre 3x en el caso normal y
+ *     ~1,8x en el mas grande, sin reescalar de forma visible;
  *   - menos de 200 KB;
  *   - alfa exacta: `alphaQuality: 100` comprime el canal alfa sin perdida, asi
  *     que cada pixel conserva la transparencia del maestro redimensionado.
  *
- * Calidad 84 y no 92: a 330 px de ancho el error es indistinguible, mientras que
- * en 900 px nativo cada punto de calidad cuesta ~4 KB sobre el archivo final (el
- * arte lleva degradados y brillos, que son caros de comprimir). `minSize`
- * desactiva los keyframes y recorta peso sin tocar un pixel.
+ * Calidad 84 y no 92: a 330 px de ancho (y hasta 505 px en tablet alta) el error
+ * es indistinguible, mientras que en 900 px nativo cada punto de calidad cuesta
+ * ~4 KB sobre el archivo final (el arte lleva degradados y brillos, que son
+ * caros de comprimir). `minSize` desactiva los keyframes y recorta peso sin
+ * tocar un pixel.
  *
  * Es idempotente: misma entrada y misma calidad -> mismos bytes.
  */

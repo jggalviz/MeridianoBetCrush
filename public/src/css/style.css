@@ -4916,9 +4916,11 @@ body.is-demo .machine__side .controls .balance::after {
        sobre el cielo del escenario) se queda con aire bajo la barra superior
        incluso en el fotograma mas alto del balanceo.
 
-       En los telefonos altos manda el 78 % del ancho; en los bajos (320 x 568) y
-       en las tablets verticales (576 x 800, 768 x 1024), donde la maquina se
-       estrecha, manda el tope y el logo se queda con el aire justo. */
+       En los telefonos altos manda el 78 % del ancho; en los bajos (320 x 568)
+       manda el tope y el logo se queda con el aire justo. En las tablets
+       verticales (600-899 px) ese unico cielo se queda corto, asi que el tramo
+       intermedio reserva aire propio para la marca (ver «Anchos intermedios» mas
+       abajo): ahi la chapa pasa del 27 al 36 % del marco sin mover su base. */
     --logo-w: min(
       calc(var(--m-w) * 0.78),
       max(0px, (var(--logo-sky) - 14px) * 2 / 1.05)
@@ -5184,20 +5186,59 @@ body.is-demo .machine__side .controls .balance::after {
   }
 }
 /* --------------------------------------------------------------------------
-   Anchos intermedios (576-899 px) · el logo ya no lleva un tope aparte
+   Anchos intermedios (600-899 px) · la marca se reserva su propio cielo
    --------------------------------------------------------------------------
    Hasta la revision del marco nuevo la chapa se ataba al 34 % del ancho del
    marco y solo se acotaba por alto a partir de 576 px, con un tope propio que
    descontaba 18 px y dividia por 1,046. Ese tope existia porque el 34 % no cabia
-   cuando el arco se apoya en el borde superior de la maquina (tablet vertical,
-   768 x 1024 · 600 x 900): el logo se salia por arriba y `overflow: hidden` lo
-   cortaba contra la barra superior.
+   cuando el arco se apoya en el borde superior de la maquina: el logo se salia
+   por arriba y `overflow: hidden` lo cortaba contra la barra superior. Con el
+   tope comun (`--logo-sky`) dejo de cortarse, pero en tablet vertical el marco
+   se estira hasta tocar la barra superior, asi que su unico cielo es el 19,87 %
+   del arte que queda sobre las placas del HUD: a 768 x 1024 la chapa se queda
+   en 192 px, el 27,5 % del marco, MENOS que en un telefono de 390 px (295 px) y
+   por debajo del 32 % que ocupa en escritorio a partir de 900 px. Ese es el
+   tramo que se veia pequeno.
 
-   Ahora el tope es comun a todo el rango movil y se calcula en la regla base con
-   la geometria real del aire sobre el marco (`--logo-sky`), asi que aqui no hace
-   falta ninguna excepcion: en 576-899 px manda el mismo `min()` y la chapa se
-   queda pegada al cielo de la esquina, sin tocar el filo ni la barra superior.
+   La correccion no toca la geometria del marco ni la del HUD: se le reserva a
+   la maquina un aire vertical (`--logo-air`) que el `min()` de `--m-w` descuenta
+   del alto libre. La rejilla esta centrada, asi que el aire se reparte a partes
+   iguales arriba y abajo; la mitad de arriba entra en `--logo-sky` y la chapa
+   crece con ella. Con el 8 % del alto del escenario (78 px como maximo):
+
+     · 768 x 1024 · 953 px de escenario → 76 px de aire → maquina 678 px (−8 %),
+       logo 247 x 124 px = 36,5 % del marco;
+     · 899 x 1200 · 1129 px → 78 px → maquina 812 px (−7 %), logo 289 x 145 px =
+       35,6 % del marco.
+
+   Es decir, la chapa se queda entre el 35 y el 37 % del marco en todo el tramo
+   (lo mismo que ya lucia en 600 x 900, 37,6 %, donde manda el ancho) y a la
+   altura del logo del telefono alto y del escritorio. Donde el ancho manda
+   (600 x 900, 640 x 960, cualquier telefono) el `min()` se queda con `100cqw` y
+   no cambia nada; en las tablets muy altas (768 x 1366) el sobrante real ya
+   supera al aire reservado y el logo pasa del 60 % del marco sin tocar el tope.
+   La base del logo no se mueve (`0.8013` del marco): la holgura sobre las
+   placas del HUD y bajo la barra superior se mantiene igual.
+
+   Queda fuera el horizontal bajo (`min-height: 521px`): ahi manda la regla de
+   `max-height: 520px`, que comprime la cabecera justo para devolverle alto al
+   dibujo, y reservar aire iria en contra. El tramo apaisado conserva su
+   geometria; solo el vertical (y el apaisado con alto de escritorio, como
+   800 x 600) entra aqui.
    -------------------------------------------------------------------------- */
+
+@media (min-width: 600px) and (max-width: 899px) and (min-height: 521px) {
+  .machine {
+    /* 8 % del alto del escenario, con 78 px de techo: suficiente para que la
+       chapa recupere la presencia del resto de los tramos y lo bastante corto
+       para que el tablero no pierda mas del 8 % de su ancho. */
+    --logo-air: clamp(0px, calc(100cqh * 0.08), 78px);
+    --m-w: min(
+      100cqw,
+      calc((100cqh - var(--row-gap) - var(--logo-air)) / 1.2813)
+    );
+  }
+}
 
 /* --------------------------------------------------------------------------
    4) La consola · carcasa grafica + controles superpuestos
