@@ -19,8 +19,8 @@ const SYMBOLS_DIR = path.join(PUBLIC_DIR, 'src', 'assets', 'symbols');
 const FORMAT_PATH = path.join(PUBLIC_DIR, 'ui', 'lib', 'format.js');
 const STYLE_PATH = path.join(PUBLIC_DIR, 'src', 'css', 'style.css');
 const INDEX_PATH = path.join(PUBLIC_DIR, 'index.html');
-const LOGO_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'PANA-CRUSH-LOGO.webp');
-const LOGO_MASTER_PATH = path.join(ROOT_DIR, 'design', 'pana_crush_ANIMACION-LOGO_final.gif');
+const LOGO_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'MERIDIANOBET-CRUSH-LOGO.webp');
+const LOGO_MASTER_PATH = path.join(ROOT_DIR, 'design', 'MeridianoBet Sports Crush Logo.png');
 const WIN_ART_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'victoria_dulce.webp');
 const WIN_MASTER_PATH = path.join(ROOT_DIR, 'design', 'victoria_dulce.png');
 const WIN_SOUND_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'AUDIO-WIN-2.MP3');
@@ -65,13 +65,15 @@ test('los 11 simbolos del motor apuntan a imagenes existentes', () => {
   }
 });
 
-test('el logo animado se sirve ligero y esta centrado sobre el tablero', () => {
+test('el logotipo de MeridianoBet se sirve ligero y con su proporcion 2:1', () => {
   const html = read(INDEX_PATH);
 
-  assert.ok(fs.existsSync(LOGO_PATH), 'Falta public/src/assets/PANA-CRUSH-LOGO.webp');
+  assert.ok(fs.existsSync(LOGO_PATH), 'Falta public/src/assets/MERIDIANOBET-CRUSH-LOGO.webp');
 
-  // El peso es parte del contrato: el maestro GIF pesa 476 KB y el WebP servido
-  // ronda los 135 KB: WebP animado real (VP8X + ANIM + 5 ANMF), bucle infinito.
+  // El peso es parte del contrato: el maestro PNG pesa 2,2 MB y el WebP servido
+  // queda por debajo de 200 KB. Es un WebP estatico (VP8X + ALPH + VP8): el
+  // logotipo nuevo es un lockup fijo, no la animacion de cinco fotogramas del
+  // tema anterior.
   const binary = fs.readFileSync(LOGO_PATH);
   assert.equal(binary.toString('ascii', 0, 4), 'RIFF', 'El logo debe ser un contenedor RIFF/WebP');
   assert.equal(binary.toString('ascii', 8, 12), 'WEBP', 'El logo debe ser un contenedor RIFF/WebP');
@@ -79,48 +81,55 @@ test('el logo animado se sirve ligero y esta centrado sobre el tablero', () => {
   const chunks = webpChunks(binary);
   assert.equal(chunks[0].fourCC, 'VP8X', 'El logo debe declarar caracteristicas extendidas (VP8X)');
 
-  const anim = chunks.find((chunk) => chunk.fourCC === 'ANIM');
-  assert.ok(anim, 'El logo debe declarar animacion (bloque ANIM)');
-  assert.equal(binary.readUInt16LE(anim.offset + 12), 0, 'El bucle debe ser infinito (loop count 0)');
-
-  const frames = chunks.filter((chunk) => chunk.fourCC === 'ANMF');
-  assert.equal(frames.length, 5, 'El logo debe conservar los 5 fotogramas del GIF');
-  // Los retardos son parte del contrato: el logo se mece con el mismo ritmo que
-  // el maestro (430/100/370/500/400 ms), no con un frame fijo ni reordenado.
-  const delays = frames.map((frame) => binary.readUIntLE(frame.offset + 20, 3));
-  assert.deepEqual(delays, [430, 100, 370, 500, 400], 'El logo debe conservar los retardos del maestro');
-
-  // Sin reescalar: el lienzo del WebP tiene que medir lo mismo que el GIF. Un
-  // upscale no se nota en pantalla y solo infla el peso que se descarga.
-  const master = fs.readFileSync(LOGO_MASTER_PATH);
-  assert.equal(master.toString('ascii', 0, 3), 'GIF', 'El maestro del logo debe ser el GIF original');
-  assert.equal(
-    binary.readUIntLE(chunks[0].offset + 12, 3) + 1,
-    master.readUInt16LE(6),
-    'El lienzo del WebP debe conservar el ancho del maestro'
+  const flags = binary.readUInt8(chunks[0].offset + 8);
+  assert.equal((flags & 0x02) === 0, true, 'El logo no debe declarar animacion (bloque ANIM)');
+  assert.equal((flags & 0x10) !== 0, true, 'El logo debe declarar canal alfa');
+  assert.ok(
+    chunks.some((chunk) => chunk.fourCC === 'ALPH'),
+    'El logo debe traer el plano alfa como bloque ALPH'
   );
   assert.equal(
-    binary.readUIntLE(chunks[0].offset + 15, 3) + 1,
-    master.readUInt16LE(8),
-    'El lienzo del WebP debe conservar el alto del maestro'
+    chunks.some((chunk) => chunk.fourCC === 'ANMF'),
+    false,
+    'El logo estatico no debe traer fotogramas ANMF'
   );
+
+  // Lienzo: 900 x 450, la misma proporcion 2:1 del maestro. Se sirve a 240 px de
+  // ancho como maximo, asi que 900 cubre pantallas de alta densidad sin reescalar
+  // en el navegador y sin publicar el PNG completo.
+  const width = binary.readUIntLE(chunks[0].offset + 12, 3) + 1;
+  const height = binary.readUIntLE(chunks[0].offset + 15, 3) + 1;
+  assert.equal(width, 900, 'El logo debe servirse a 900 px de ancho');
+  assert.equal(height, 450, 'El logo debe conservar la proporcion 2:1 (900 x 450)');
 
   assert.ok(
     binary.length < 200 * 1024,
-    `El logo animado debe pesar menos de 200 KB (pesa ${(binary.length / 1024).toFixed(1)} KB)`
+    `El logo debe pesar menos de 200 KB (pesa ${(binary.length / 1024).toFixed(1)} KB)`
   );
 
   assert.match(html, /<div class="machine__hero">/);
-  assert.match(html, /src="\/src\/assets\/PANA-CRUSH-LOGO\.webp"/);
-  assert.match(html, /alt="PANA CRUSH"/);
-  assert.match(html, /width="240" height="240"/, 'El logo debe reservar 240x240 px como maximo');
+  assert.match(html, /src="\/src\/assets\/MERIDIANOBET-CRUSH-LOGO\.webp"/);
+  assert.match(html, /alt="MeridianoBet Crush"/);
+  // La caja reserva la proporcion del archivo: si el HTML dice 1:1 el navegador
+  // aparta el doble de alto del que ocupa el dibujo y el tablero salta al cargar.
+  assert.match(html, /width="480" height="240"/, 'El logo debe reservar 480x240 px (2:1)');
 });
 
 test('el maestro del logo vive fuera de public/ y no viaja al CDN', () => {
-  // El GIF pesa 476 KB: si se queda en `public/src`, se publica en cada deploy y
+  // El PNG pesa 2,2 MB: si se queda en `public/src`, se publica en cada deploy y
   // el directorio deja de ser solo lo que consume el cliente.
-  assert.ok(fs.existsSync(LOGO_MASTER_PATH), 'Falta el maestro design/pana_crush_ANIMACION-LOGO_final.gif');
+  assert.ok(
+    fs.existsSync(LOGO_MASTER_PATH),
+    'Falta el maestro design/MeridianoBet Sports Crush Logo.png'
+  );
   assert.ok(fs.statSync(LOGO_MASTER_PATH).size > 0, 'El maestro del logo esta vacio');
+
+  const signature = fs.readFileSync(LOGO_MASTER_PATH).subarray(0, 8);
+  assert.deepEqual(
+    [...signature],
+    [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+    'El maestro del logo debe seguir siendo un PNG'
+  );
 
   const media = /\.(gif|png|jpe?g|webp|avif|psd|tiff?|mp4|mov|webm)$/i;
   const strays = fs
@@ -132,6 +141,53 @@ test('el maestro del logo vive fuera de public/ y no viaja al CDN', () => {
     [],
     `public/src solo debe contener carpetas publicadas; sobran: ${strays.join(', ')}`
   );
+});
+
+test('la barra superior firma MeridianoBet Crush y conserva los ganchos del juego', () => {
+  const html = read(INDEX_PATH);
+  const css = read(STYLE_PATH);
+  const theme = read(path.join(PUBLIC_DIR, 'src', 'css', 'theme.css'));
+
+  // La pestaña del navegador: la marca va primero y el dato comercial detras.
+  assert.match(html, /<title>MeridianoBet Crush · 6×5 · RTP 95%<\/title>/);
+  assert.match(html, /<meta name="theme-color" content="#c8102e" \/>/);
+  assert.match(
+    html,
+    /<meta name="description" content="MeridianoBet Crush 6x5: /,
+    'La descripcion debe nombrar la marca nueva'
+  );
+  assert.doesNotMatch(html, /PANA CRUSH|Pana Crush|pana crush/, 'No deben quedar restos de la marca anterior');
+
+  // Firma: nombre + insignia del balon + etiqueta de rejilla, sin emojis.
+  assert.match(html, /<h1 class="brand__title">MeridianoBet /);
+  assert.match(html, /<span class="brand__crush">Crush<span class="brand__grid">6×5<\/span><\/span>/);
+  assert.match(html, /<span class="brand__grid">6×5<\/span>/);
+  assert.match(html, /<svg class="brand__ball" viewBox="0 0 32 32"/);
+  assert.match(html, /<p class="brand__sub">Sports Grid Pays/);
+
+  // El contrato con el JS no cambia: el controlador busca estos ids y pinta el
+  // silencio con `aria-pressed`, no con el texto del boton.
+  assert.match(html, /class="icon-btn icon-btn--sound" id="btn-sound" type="button" aria-pressed="true"/);
+  assert.match(html, /class="icon-btn icon-btn--help" id="btn-help" type="button"/);
+  assert.match(
+    html,
+    /<div class="topbar__audio" role="group" aria-label="Audio y ayuda">/,
+    'Sonido y ayuda comparten la capsula de audio'
+  );
+  assert.match(
+    css,
+    /\.icon-btn\[aria-pressed="false"\] \.icon-btn__mute \{ display: inline; \}/,
+    'El icono de silencio se pinta por CSS desde `aria-pressed`'
+  );
+
+  // La capa de marca pinta la firma; la maqueta (geometria) vive en style.css.
+  for (const selector of ['.topbar', '.brand__mark', '.topbar__audio', '.brand__title .brand__crush']) {
+    assert.ok(
+      theme.includes(`html[data-theme="meridianobet"] ${selector}`),
+      `theme.css debe pintar \`${selector}\``
+    );
+  }
+  assert.doesNotMatch(html, /[\u{1F507}-\u{1F50A}]/u, 'La barra usa SVG, no emojis de altavoz');
 });
 
 test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera de public/', () => {
@@ -912,19 +968,19 @@ test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros q
 
   const logoBodies = bodies('\\.machine__side \\.machine__logo');
   assert.ok(logoBodies.length, 'El logo debe declarar su caja sobre la nube');
-  for (const declaration of ['left: 50.82%;', 'top: 34.3%;', 'width: 54%;']) {
+  for (const declaration of ['left: 50.82%;', 'top: 36%;', 'width: 58%;', 'aspect-ratio: 2 / 1;']) {
     assert.ok(
       logoBodies.some((body) => body.includes(declaration)),
       `El logo se apoya en el hueco de d5 con \`${declaration}\``
     );
   }
   assert.ok(
-    logoBodies.some((body) => body.includes('top: 34.3%;') && body.includes('width: 54%;')),
-    'El logo cubre la nube de d5 y asoma por arriba del modulo'
+    logoBodies.some((body) => body.includes('top: 36%;') && body.includes('width: 58%;')),
+    'El logo ocupa el hueco de la nube de d5'
   );
   assert.ok(
-    logoBodies.some((body) => body.includes('width: 45%;') && body.includes('top: 36.7%;')),
-    'En ventanas bajas el logo mantiene la base con un 45 % de ancho'
+    logoBodies.some((body) => body.includes('width: 50%;') && body.includes('top: 34%;')),
+    'En ventanas bajas el logo mantiene la base con un 50 % de ancho'
   );
   // El case de escritorio responde como un pulsador de arcade: se hunde un 5 %
   // (y con el, su trozo de dibujo) y suelta un destello especular al pasar el

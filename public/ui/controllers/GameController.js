@@ -230,9 +230,14 @@ export class GameController {
   toggleSound() {
     const muted = !this.sfx.isMuted();
     this.sfx.setMuted(muted);
+    /* El icono es un SVG que pinta `style.css` a partir de `aria-pressed`: aqui
+       solo se mueve el estado, sin reescribir el contenido del boton (antes se
+       sustituia el emoji y eso borraria el dibujo). */
     const button = this.ui.refs.soundBtn;
-    button.textContent = muted ? '🔇' : '🔊';
-    button.setAttribute('aria-pressed', muted ? 'false' : 'true');
+    if (button) {
+      button.setAttribute('aria-pressed', muted ? 'false' : 'true');
+      button.title = muted ? 'Activar sonido' : 'Silenciar sonido';
+    }
     if (!muted) this.sfx.click();
   }
 

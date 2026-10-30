@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="PANA CRUSH 6x5: slot de pagos por dispersion con motor autoritativo en servidor. RTP 95%, ganancia maxima 10.000x." />
+  <meta name="description" content="MeridianoBet Crush 6x5: slot de pagos por dispersion con motor autoritativo en servidor. RTP 95%, ganancia maxima 10.000x." />
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#c8102e" />
   <!-- Endpoint del motor. Vacio = mismo origen. Para el motor externo:
        <meta name="game-api-base" content="https://engine.latingames.net" /> -->
   <meta name="game-api-base" content="" />
-  <title>PANA CRUSH · 6×5 · RTP 95%</title>
+  <title>MeridianoBet Crush · 6×5 · RTP 95%</title>
   <link rel="stylesheet" href="/src/css/style.css" />
   <!-- Capa de marca (Meridianobet). Solo tokens, superficies y acentos; no
        toca la maqueta ni el arte del juego. Se carga despues de style.css y
@@ -33,7 +33,7 @@
       margin: 0;
       overflow: hidden;
       overscroll-behavior: none;
-      background-color: #ffa8de;
+      background-color: #eef0f4;
     }
   </style>
 </head>
@@ -41,23 +41,61 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="brand__mark" aria-hidden="true">🍭</span>
+        <!-- Insignia de marca: el balón del logotipo. El color lo pone
+             `theme.css` (`currentColor`); el dibujo es el mismo en cualquier
+             tamano porque escala con la caja del icono. -->
+        <span class="brand__mark" aria-hidden="true">
+          <svg class="brand__ball" viewBox="0 0 32 32" focusable="false">
+            <circle class="brand__ball-shell" cx="16" cy="16" r="10.4" />
+            <path class="brand__ball-core" d="M16 11.9l-4.1 3 1.6 4.8h5l1.6-4.8z" />
+            <path class="brand__ball-seams"
+                  d="M16 11.9V6M11.9 14.9L6.8 13.2M13.5 19.7l-3.2 5M18.5 19.7l3.2 5M20.1 14.9l5.1-1.7" />
+          </svg>
+        </span>
         <div class="brand__text">
-          <h1 class="brand__title">PANA CRUSH <span>6×5</span></h1>
-          <p class="brand__sub">Sweet Grid Pays · RTP 95 % · Máx. 10.000×</p>
+          <h1 class="brand__title">MeridianoBet <span class="brand__crush">Crush<span class="brand__grid">6×5</span></span></h1>
+          <p class="brand__sub">Sports Grid Pays · RTP 95 % · Máx. 10.000×</p>
         </div>
       </div>
 
       <div class="topbar__right">
         <button class="btn btn--demo" id="btn-demo" type="button" aria-pressed="false"
                 title="Jugar gratis con fichas virtuales, sin dinero real">
+          <span class="btn__coin" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <circle cx="12" cy="12" r="9.2" fill="#ffd45e" stroke="#c8102e" stroke-width="1.7" />
+              <path d="M12 6.6v10.8" fill="none" stroke="#8f0a1f" stroke-width="1.6"
+                    stroke-linecap="round" />
+              <path d="M14.4 9.4a2.5 2.5 0 0 0-4.4 1.2c0 2.9 4.6 1.3 4.6 4a2.5 2.5 0 0 1-4.6.6"
+                    fill="none" stroke="#8f0a1f" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </span>
           <span class="btn__title">Fichas de Prueba</span>
           <span class="btn__sub" id="demo-sub">1.000,00 VES</span>
         </button>
-        <button class="icon-btn" id="btn-sound" type="button" aria-pressed="true"
-                title="Sonido" aria-label="Activar o desactivar sonido">🔊</button>
-        <button class="icon-btn" id="btn-help" type="button"
-                title="Reglas y tabla de pagos" aria-label="Reglas y tabla de pagos">?</button>
+
+        <!-- Controles de audio: una sola capsula para los dos iconos. El estado
+             de silencio lo pinta `style.css` leyendo `aria-pressed`; el SVG
+             cambia de ondas a cruz sin que el JS toque su contenido. -->
+        <div class="topbar__audio" role="group" aria-label="Audio y ayuda">
+          <button class="icon-btn icon-btn--sound" id="btn-sound" type="button" aria-pressed="true"
+                  title="Silenciar sonido" aria-label="Activar o desactivar sonido">
+            <svg class="icon-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path class="icon-btn__speaker" d="M4 9.2h3.2L12.4 5.6v12.8L7.2 14.8H4z" />
+              <path class="icon-btn__wave" d="M15.6 9.2a4 4 0 0 1 0 5.6" />
+              <path class="icon-btn__wave icon-btn__wave--far" d="M18.2 6.6a7.8 7.8 0 0 1 0 10.8" />
+              <path class="icon-btn__mute" d="M15.8 9.8l4.6 4.4M20.4 9.8l-4.6 4.4" />
+            </svg>
+          </button>
+          <button class="icon-btn icon-btn--help" id="btn-help" type="button"
+                  title="Reglas y tabla de pagos" aria-label="Reglas y tabla de pagos">
+            <svg class="icon-btn__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M9.3 9.2a2.9 2.9 0 0 1 5.5 1c0 1.9-2.6 2.1-2.6 4.1" />
+              <circle class="icon-btn__dot" cx="12" cy="17.4" r="1.2" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -71,8 +109,8 @@
           <!-- Bloque 1 · Logo principal (flotacion continua via CSS) -->
           <div class="machine__hero">
             <span class="machine__spark machine__spark--left" aria-hidden="true">✦</span>
-            <img class="machine__logo" src="/src/assets/PANA-CRUSH-LOGO.webp"
-                 alt="PANA CRUSH" width="240" height="240" fetchpriority="high" />
+            <img class="machine__logo" src="/src/assets/MERIDIANOBET-CRUSH-LOGO.webp"
+                 alt="MeridianoBet Crush" width="480" height="240" fetchpriority="high" />
             <span class="machine__spark machine__spark--right" aria-hidden="true">✦</span>
           </div>
 

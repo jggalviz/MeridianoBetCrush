@@ -165,18 +165,47 @@ button:disabled { cursor: not-allowed; }
 
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
+/* Insignia de marca: caja cuadrada con el balon del logotipo dentro. La caja es
+   maqueta (aqui) y la pinta `theme.css`; el SVG se mide en % para que acompanie
+   a la caja en todos los breakpoints sin reglas extra. */
 .brand__mark {
-  font-size: 30px;
-  filter: drop-shadow(0 4px 10px rgba(255, 116, 200, 0.45));
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 13px;
+}
+
+.brand__ball {
+  display: block;
+  width: 68%;
+  height: 68%;
 }
 
 .brand__title {
   font-size: clamp(17px, 2vw, 22px);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-.brand__title span { color: var(--lime); }
+/* "MeridianoBet" en tinta y "Crush 6x5" en un unico grupo que nunca parte: en
+   pantallas estrechas el titulo cae en dos lineas limpias (nombre / marca) en
+   vez de recortarse con puntos suspensivos. */
+.brand__crush { white-space: nowrap; }
+
+.brand__grid {
+  display: inline-block;
+  margin-left: 0.2em;
+  padding: 0.06em 0.34em 0.1em;
+  border-radius: 0.36em;
+  font-size: 0.58em;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  vertical-align: 0.22em;
+}
 
 .brand__sub {
   margin: 2px 0 0;
@@ -187,6 +216,64 @@ button:disabled { cursor: not-allowed; }
 }
 
 .topbar__right { display: flex; align-items: center; gap: 10px; }
+
+/* Capsula de audio: sonido y ayuda comparten una sola pastilla. Los botones
+   pierden borde y fondo propios (los pone la capsula) pero conservan el area
+   tactil de siempre: el conjunto mide lo mismo que los dos iconos sueltos. */
+.topbar__audio {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+}
+
+.topbar__audio .icon-btn {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  box-shadow: none;
+}
+
+.topbar__audio .icon-btn:active { transform: translateY(1px); }
+
+/* Iconos de linea: un solo trazo de 1,9 px y `currentColor`, asi el estado de
+   silencio solo cambia el color del boton (lo hace `theme.css`). */
+.icon-btn__icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-btn__speaker,
+.icon-btn__dot { fill: currentColor; stroke: none; }
+
+/* Silenciado: la cruz sustituye a las ondas. `aria-pressed` lo mantiene
+   `GameController`, el mismo estado que lee el lector de pantalla. */
+.icon-btn__mute { display: none; }
+.icon-btn[aria-pressed="false"] .icon-btn__mute { display: inline; }
+.icon-btn[aria-pressed="false"] .icon-btn__wave { display: none; }
+
+/* Ficha dorada del boton de prueba: puro adorno de marca, por eso va en un
+   contenedor propio y no como emoji. */
+.btn__coin {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+}
+
+.btn__coin svg { display: block; width: 100%; height: 100%; }
+
 
 .balance {
   display: flex;
@@ -6050,8 +6137,7 @@ body.is-demo .machine__side .controls .balance::after {
 
   .brand__mark {
     flex: 0 0 auto;
-    font-size: clamp(17px, 5.2vw, 23px);
-    filter: drop-shadow(0 2px 6px rgba(255, 116, 200, 0.45));
+    filter: drop-shadow(0 2px 6px rgba(27, 30, 35, 0.18));
   }
 
   .brand__text {
@@ -6059,14 +6145,17 @@ body.is-demo .machine__side .controls .balance::after {
     overflow: hidden;
   }
 
+  /* Sin elipsis: el titulo cae en dos lineas ("MERIDIANOBET" / "CRUSH 6x5")
+     cuando el ancho no da, y la insignia del balon fija el alto de la barra. */
   .brand__title {
-    font-size: clamp(11px, 3.3vw, 15px);
+    font-size: clamp(10px, 2.9vw, 13.5px);
     letter-spacing: 0.04em;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.08;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
+
+  .brand__grid { font-size: 0.7em; }
 
   .brand__sub { display: none; }
 
@@ -6076,6 +6165,28 @@ body.is-demo .machine__side .controls .balance::after {
     flex-wrap: nowrap;
     gap: 5px;
   }
+
+  /* La capsula conserva el alto de los iconos sueltos: 1 px de aire por lado. */
+  .topbar__audio {
+    gap: 1px;
+    padding: 1px;
+    border-radius: 12px;
+  }
+
+  .topbar__audio .icon-btn,
+  .topbar .icon-btn {
+    width: clamp(27px, 7.6vw, 33px);
+    height: clamp(27px, 7.6vw, 33px);
+    border-radius: 10px;
+  }
+
+  .topbar__audio .icon-btn { border-radius: 9px; }
+
+  .icon-btn__icon { width: clamp(17px, 4.7vw, 20px); height: clamp(17px, 4.7vw, 20px); }
+
+  /* El boton de prueba se queda en texto: 22 px de ficha no caben sin empujar
+     el titulo a una tercera linea. */
+  .topbar .btn--demo .btn__coin { display: none; }
 
   .topbar .btn--demo {
     flex-direction: row;
@@ -6270,21 +6381,21 @@ body.is-demo .machine__side .controls .balance::after {
      `transform`, que se compone con las propiedades individuales y no las pisa.
      Medidas sobre d5.webp: el hueco transparente de la nube (por el que se ve
      el fondo) se abre entre x 30,9 y 70,5 % en su punto mas ancho (y 57,4 %) y
-     cierra en y 68,5 %, mientras que las placas arrancan en 75,8 %. Como el
-     logo mide 493/509 (alto = 1,4575 x su ancho expresado en % de --hero-h),
-     un 54 % de ancho da 78,7 % de alto: centrado en 34,3 % apoya sus letras en
-     71,3 % (4,5 % de aire sobre las placas) y desborda 5 % por arriba. Es el
-     tope que deja el `overflow: hidden` de `.machine`: la animacion sube la
-     caja 7 px y la escala un 3 % (otros ~5 px en 1366 x 768), asi que con 5 %
-     de sobrante el filo del logo nunca se recorta. */
+     cierra en y 68,5 %, mientras que las placas arrancan en 75,8 %. El lockup
+     de MeridianoBet es 2:1 (no la pegatina cuadrada del tema anterior), asi que
+     un 58 % de ancho da 41 % de alto en unidades de --hero-h: centrado en 36 %
+     apoya su base en 56,5 % (19 % de aire sobre las placas) y deja el balon a
+     la altura del hueco de la nube. Es el tope que deja el `overflow: hidden`
+     de `.machine`: la animacion sube la caja 7 px y la escala un 3 %, asi que
+     con ese aire el filo del logo nunca se recorta. */
   .machine__side .machine__logo {
     position: absolute;
     left: 50.82%;
-    top: 34.3%;
+    top: 36%;
     z-index: 6;
-    width: 54%;
+    width: 58%;
     height: auto;
-    aspect-ratio: 493 / 509;
+    aspect-ratio: 2 / 1;
     max-width: none;
     max-height: none;
     margin: 0;
@@ -6997,10 +7108,10 @@ body.is-demo .machine__side .controls .balance::after {
 @media (min-width: 900px) and (max-height: 660px) {
   .machine__side .machine__hero { display: block; }
   /* Un poco mas pequeño que en el caso general para no asomar tanto cuando no
-     hay alto: 45 % de ancho deja el alto en 65,6 % del hero, asi que su centro
-     cae en 36,7 % y las letras apoyan en 67,6 % (8,2 % de aire sobre las
+     hay alto: el lockup es 2:1, asi que un 50 % de ancho deja el alto en 35 %
+     del hero y su centro cae en 34 % (la base queda muy por encima de las
      placas). */
-  .machine__side .machine__logo { width: 45%; top: 36.7%; }
+  .machine__side .machine__logo { width: 50%; top: 34%; }
 }
 
 /* Ventanas de menos de 470 px de alto: la placa del hero mide ~50 px y el

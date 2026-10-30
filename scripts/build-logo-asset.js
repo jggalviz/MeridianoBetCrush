@@ -2,28 +2,28 @@
 'use strict';
 
 /**
- * Optimiza el logotipo animado de PANA CRUSH.
+ * Optimiza el logotipo de MeridianoBet Sports Crush.
  *
  *   npm run build:logo
  *
- * El maestro vive en `design/pana_crush_ANIMACION-LOGO_final.gif`: 493 x 509 px
- * por fotograma, 5 fotogramas, alfa binaria y bucle infinito. Igual que el arte
- * del case, se guarda fuera de `public/` porque todo lo que hay en
- * `public/src/**` se publica en el CDN y el GIF pesa 476 KB.
+ * El maestro vive en `design/MeridianoBet Sports Crush Logo.png`: 1774 x 887 px
+ * con canal alfa y 2,2 MB. Igual que el arte del case, se guarda fuera de
+ * `public/` porque todo lo que hay en `public/src/**` se publica en el CDN y el
+ * PNG completo viajaria en cada deploy.
  *
- * El script escribe `public/src/assets/PANA-CRUSH-LOGO.webp` respetando el
- * contrato de `test/frontendAssets.test.js`:
- *   - WebP animado real (VP8X + ANIM + 5 ANMF) con loop 0;
+ * El script escribe `public/src/assets/MERIDIANOBET-CRUSH-LOGO.webp` respetando
+ * el contrato de `test/frontendAssets.test.js`:
+ *   - WebP estatico con alfa real (VP8X + bloque ALPH) y sin bloque ANIM;
+ *   - 900 x 450 px, la misma proporcion 2:1 del maestro (el CSS lo pinta como
+ *     mucho a 240 px de ancho, asi que 900 cubre pantallas 3,75x sin reescalar);
  *   - menos de 200 KB;
- *   - mismos retardos que el maestro: 430, 100, 370, 500 y 400 ms;
  *   - alfa exacta: `alphaQuality: 100` comprime el canal alfa sin perdida, asi
- *     que cada pixel conserva su transparencia original (0 px distintos).
+ *     que cada pixel conserva la transparencia del maestro redimensionado.
  *
- * Calidad 76 y no 92: el logo se pinta a 126 px de alto como maximo y a ese
- * tamano el error es indistinguible (PSNR 36,6 dB, por encima del asset
- * anterior de 34,7 dB), mientras que en 493 x 509 nativo cada punto de calidad
- * cuesta ~6 KB sobre el archivo completo. `minSize` desactiva los keyframes de
- * la animacion y recorta ~5 KB sin tocar un pixel.
+ * Calidad 84 y no 92: a 240 px de ancho el error es indistinguible, mientras que
+ * en 900 px nativo cada punto de calidad cuesta ~4 KB sobre el archivo final (el
+ * arte lleva degradados y brillos, que son caros de comprimir). `minSize`
+ * desactiva los keyframes y recorta peso sin tocar un pixel.
  *
  * Es idempotente: misma entrada y misma calidad -> mismos bytes.
  */
@@ -33,26 +33,31 @@ const path = require('node:path');
 const sharp = require('sharp');
 
 const ROOT = path.join(__dirname, '..');
-const SOURCE = path.join(ROOT, 'design', 'pana_crush_ANIMACION-LOGO_final.gif');
-const TARGET = path.join(ROOT, 'public', 'src', 'assets', 'PANA-CRUSH-LOGO.webp');
-const DEPLOY = path.join(ROOT, '.vercel', 'output', 'static', 'src', 'assets', 'PANA-CRUSH-LOGO.webp');
+const SOURCE = path.join(ROOT, 'design', 'MeridianoBet Sports Crush Logo.png');
+const TARGET = path.join(ROOT, 'public', 'src', 'assets', 'MERIDIANOBET-CRUSH-LOGO.webp');
+const DEPLOY = path.join(
+  ROOT,
+  '.vercel',
+  'output',
+  'static',
+  'src',
+  'assets',
+  'MERIDIANOBET-CRUSH-LOGO.webp'
+);
 
-// Contrato del logo: el GIF entrega 5 fotogramas y estos retardos.
-const FRAMES = 5;
-const DELAYS = [430, 100, 370, 500, 400];
+// Contrato del logo: lienzo 2:1 (1774 / 887) y un ancho servido acotado.
+const ASPECT = 1774 / 887;
+const WIDTH = Number(process.env.LOGO_WIDTH || 900);
 const MAX_BYTES = 200 * 1024;
 
-// Ver el comentario de cabecera: 76 es el punto donde el peso baja de 135 KB
-// sin que se note a 126 px de alto (el maximo que pinta el CSS).
-const QUALITY = Number(process.env.LOGO_QUALITY || 76);
+// Ver el comentario de cabecera: 84 deja el archivo muy por debajo del tope sin
+// que se note a 240 px de ancho (el maximo que pinta el CSS).
+const QUALITY = Number(process.env.LOGO_QUALITY || 84);
 
-/** Decodifica todos los fotogramas apilados en un unico RGBA. */
+/** Decodifica una imagen en un unico RGBA para comparar el alfa pixel a pixel. */
 async function decode(file) {
-  const meta = await sharp(file, { animated: true }).metadata();
-  const { data, info } = await sharp(file, { animated: true })
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
+  const meta = await sharp(file).metadata();
+  const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   return { meta, data, info };
 }
 
@@ -62,59 +67,56 @@ async function decode(file) {
   }
 
   const source = await decode(SOURCE);
-  if (source.meta.pages !== FRAMES) {
+  if (!source.meta.hasAlpha) {
+    throw new Error('El maestro del logo debe traer canal alfa: el tema lo pinta sobre el cielo');
+  }
+  if (Math.abs(source.info.width / source.info.height - ASPECT) > 0.002) {
     throw new Error(
-      `El maestro trae ${source.meta.pages} fotogramas y el contrato exige ${FRAMES}: ` +
+      `El maestro mide ${source.info.width}x${source.info.height} y el contrato exige 2:1: ` +
         'actualiza el test y build-logo-asset.js antes de publicarlo'
     );
   }
-  if (source.meta.loop !== 0) {
-    throw new Error(`El maestro debe repetirse sin fin (loop 0), trae loop ${source.meta.loop}`);
-  }
-  for (const index of DELAYS.keys()) {
-    if (source.meta.delay[index] !== DELAYS[index]) {
-      throw new Error(
-        `El fotograma ${index} dura ${source.meta.delay[index]} ms y el contrato espera ${DELAYS[index]} ms`
-      );
-    }
-  }
 
-  // `delay` y `loop` no se tocan: sharp los hereda del maestro.
-  const webp = await sharp(SOURCE, { animated: true })
+  const width = Math.min(WIDTH, source.info.width);
+  const height = Math.round(width / ASPECT);
+
+  // Se codifica desde el RGBA ya reescalado: asi la comparacion de alfa es
+  // exacta y el WebP no arrastra el perfil del PNG original.
+  const canvas = await sharp(SOURCE)
+    .resize({ width, height, fit: 'fill', kernel: 'lanczos3' })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const webp = await sharp(canvas.data, {
+    raw: { width: canvas.info.width, height: canvas.info.height, channels: 4 }
+  })
     .webp({
       quality: QUALITY,
       alphaQuality: 100,
       effort: 6,
       smartSubsample: true,
-      minSize: true,
+      minSize: true
     })
     .toBuffer();
 
   const output = await decode(webp);
-  if (output.meta.pages !== FRAMES) {
-    throw new Error(`El WebP salio con ${output.meta.pages} fotogramas, se esperaban ${FRAMES}`);
+  if (output.meta.format !== 'webp') {
+    throw new Error(`La salida no es WebP (${output.meta.format})`);
   }
-  if (output.meta.loop !== 0) {
-    throw new Error(`El WebP salio con loop ${output.meta.loop}, se esperaba bucle infinito`);
+  if (output.meta.pages) {
+    throw new Error('El logo ya no es animado: la salida no debe traer bloque ANIM');
   }
-  if (output.info.width !== source.info.width || output.info.height !== source.info.height) {
+  if (output.info.width !== width || output.info.height !== height) {
     throw new Error(
-      `El WebP mide ${output.info.width}x${output.info.height}, se esperaba ` +
-        `${source.info.width}x${source.info.height} (sin reescalar)`
+      `El WebP mide ${output.info.width}x${output.info.height}, se esperaba ${width}x${height}`
     );
   }
-  for (const index of DELAYS.keys()) {
-    if (output.meta.delay[index] !== DELAYS[index]) {
-      throw new Error(
-        `El WebP cambio el retardo del fotograma ${index} a ${output.meta.delay[index]} ms`
-      );
-    }
-  }
 
-  // Alfa exacta: el canal alfa viaja sin perdida, byte a byte contra el maestro.
+  // Alfa exacta: el canal alfa viaja sin perdida, byte a byte contra el lienzo.
   let alphaDiff = 0;
-  for (let i = 3; i < source.data.length; i += 4) {
-    if (source.data[i] !== output.data[i]) alphaDiff += 1;
+  for (let i = 3; i < canvas.data.length; i += 4) {
+    if (canvas.data[i] !== output.data[i]) alphaDiff += 1;
   }
   if (alphaDiff > 0) {
     throw new Error(`El WebP altero el alfa en ${alphaDiff} pixeles: revisa alphaQuality`);
@@ -134,14 +136,13 @@ async function decode(file) {
   }
 
   const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
-  const frame = source.meta.pageHeight;
   console.log(
-    `origen  ${path.relative(ROOT, SOURCE)}  ${source.info.width}x${frame} x${FRAMES}  ` +
+    `origen  ${path.relative(ROOT, SOURCE)}  ${source.info.width}x${source.info.height}  ` +
       `${kb(fs.statSync(SOURCE).size)}`
   );
   console.log(
-    `salida  ${path.relative(ROOT, TARGET)}  ${output.info.width}x${frame} x${FRAMES}  ` +
-      `${kb(webp.length)} (q=${QUALITY}, alfa intacta, retardos ${DELAYS.join('/')} ms)`
+    `salida  ${path.relative(ROOT, TARGET)}  ${output.info.width}x${output.info.height}  ` +
+      `${kb(webp.length)} (q=${QUALITY}, alfa intacta)`
   );
   console.log(
     `ahorro  ${(100 - (webp.length / fs.statSync(SOURCE).size) * 100).toFixed(1)} % menos que el maestro`

@@ -56,6 +56,9 @@
   --brand-red-soft: #e04a5f;
   --brand-red-tint: #fdeaec;
 
+  /* Oro del logotipo: el "CRUSH" y la ficha del boton de prueba. */
+  --brand-gold: #ffc21a;
+
   /* Blancos y grafito */
   --brand-white: #ffffff;
   --brand-grey-50: #f7f8fa;
@@ -187,12 +190,18 @@ html[data-theme="meridianobet"] .tile__bomb-value {
 /* --------------------------------------------------------------------------
    4. Barra superior y firma de marca
    La barra es DOM con fondo CSS: aqui si cambia de caramelo a blanco de marca.
+   El color del balon y de la ficha sale de estos tokens; el dibujo vive en el
+   HTML (`.brand__ball`) y su geometria en `style.css`.
    -------------------------------------------------------------------------- */
 
 html[data-theme="meridianobet"] .topbar {
   border-color: var(--brand-grey-200);
-  background: linear-gradient(150deg, var(--brand-white), var(--brand-grey-50));
-  box-shadow: 0 10px 26px rgba(27, 30, 35, 0.18);
+  /* Filo superior rojo: el acento de la casa, sin tocar el grosor base. */
+  border-top-color: var(--brand-red);
+  background: linear-gradient(180deg, var(--brand-white), var(--brand-grey-50));
+  box-shadow:
+    0 10px 26px rgba(27, 30, 35, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
 /* El brillo diagonal de caramelo no forma parte de la identidad. */
@@ -200,12 +209,55 @@ html[data-theme="meridianobet"] .topbar::after {
   background: none;
 }
 
-html[data-theme="meridianobet"] .brand__title {
-  color: var(--brand-ink);
+/* Insignia: cuadro blanco con anillo rojo y el balon del logotipo en rojo. */
+html[data-theme="meridianobet"] .brand__mark {
+  color: var(--brand-red);
+  border-color: var(--brand-red);
+  background: radial-gradient(circle at 34% 26%, var(--brand-white) 0%, #fff8f6 46%, var(--brand-red-tint) 100%);
+  box-shadow:
+    0 6px 14px rgba(143, 10, 31, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9);
 }
 
-html[data-theme="meridianobet"] .brand__title span {
-  color: var(--brand-red);
+/* El balon es dibujo de linea: sin `fill` el SVG lo rellenaria de negro. */
+html[data-theme="meridianobet"] .brand__ball-shell {
+  fill: none;
+  stroke: var(--brand-red);
+  stroke-width: 2.1;
+}
+
+html[data-theme="meridianobet"] .brand__ball-core {
+  fill: var(--brand-red);
+}
+
+html[data-theme="meridianobet"] .brand__ball-seams {
+  fill: none;
+  stroke: var(--brand-red);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/* Titulo: "MeridianoBet" en tinta y "Crush" en el oro del logotipo, con el
+   contorno rojo del arte y sin la extrucion lila del caramelo. */
+html[data-theme="meridianobet"] .brand__title {
+  color: var(--brand-ink);
+  -webkit-text-stroke: 0;
+  text-shadow: 0 1px 0 rgba(27, 30, 35, 0.10);
+}
+
+html[data-theme="meridianobet"] .brand__title .brand__crush {
+  color: var(--brand-gold);
+  -webkit-text-stroke: 1.1px var(--brand-red-dark);
+  paint-order: stroke fill;
+  text-shadow: 0 2px 0 rgba(143, 10, 31, 0.28);
+}
+
+/* La etiqueta 6x5 es el unico bloque solido: rojo con cifras blancas. */
+html[data-theme="meridianobet"] .brand__title .brand__grid {
+  color: var(--brand-white);
+  -webkit-text-stroke: 0;
+  background: var(--brand-red);
+  box-shadow: 0 1px 0 var(--brand-red-dark);
 }
 
 html[data-theme="meridianobet"] .brand__sub {
@@ -213,7 +265,7 @@ html[data-theme="meridianobet"] .brand__sub {
 }
 
 /* --------------------------------------------------------------------------
-   5. Boton "Fichas de Prueba" (accion de marca, vive en la barra superior)
+   5. Controles de la barra: ficha del boton de prueba y capsula de audio
    -------------------------------------------------------------------------- */
 
 html[data-theme="meridianobet"] .topbar .btn--demo {
@@ -224,17 +276,49 @@ html[data-theme="meridianobet"] .topbar .btn--demo {
 
 html[data-theme="meridianobet"] .topbar .btn--demo .btn__title {
   color: var(--brand-white);
+  /* El trazo negro del caramelo ensucia el texto a 10 px: aqui no hace falta. */
+  -webkit-text-stroke: 0;
+  text-shadow: 0 1px 0 rgba(143, 10, 31, 0.45);
 }
 
 html[data-theme="meridianobet"] .topbar .btn--demo .btn__sub {
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--brand-gold);
 }
 
 html[data-theme="meridianobet"] .topbar .btn--demo[aria-pressed="true"] {
-  border-color: var(--brand-red-dark);
+  border-color: var(--brand-gold);
   box-shadow:
-    0 0 0 2px rgba(200, 16, 46, 0.24),
+    0 0 0 2px rgba(255, 194, 26, 0.34),
     0 10px 22px rgba(143, 10, 31, 0.32);
+}
+
+/* Capsula de audio: pastilla gris clara con los dos iconos a tinta. */
+html[data-theme="meridianobet"] .topbar__audio {
+  border-color: var(--brand-grey-200);
+  background: linear-gradient(180deg, var(--brand-white), var(--brand-grey-100));
+  box-shadow: inset 0 1px 0 var(--brand-white);
+}
+
+/* Las capas de caramelo pintan cada icono como una teja ciruela. Aqui el fondo
+   lo pone la pastilla, asi que el boton va plano: mismo tono de tinta que el
+   rotulo y ni borde ni sombra propios. */
+html[data-theme="meridianobet"] .topbar .topbar__audio .icon-btn {
+  color: var(--brand-grey-800);
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+
+html[data-theme="meridianobet"] .topbar .topbar__audio .icon-btn:hover {
+  color: var(--brand-red);
+  background: var(--brand-red-tint);
+}
+
+/* Silenciado: el icono se apaga y el boton se queda en gris claro dentro de la
+   capsula; el estado real lo lleva `aria-pressed`, no una clase aparte. */
+html[data-theme="meridianobet"] .topbar .topbar__audio .icon-btn[aria-pressed="false"] {
+  color: var(--brand-grey-400);
+  background: var(--brand-grey-50);
 }
 
 /* --------------------------------------------------------------------------
