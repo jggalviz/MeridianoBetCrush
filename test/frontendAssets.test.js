@@ -70,7 +70,7 @@ test('el logotipo de MeridianoBet se sirve ligero y con su proporcion 2:1', () =
 
   assert.ok(fs.existsSync(LOGO_PATH), 'Falta public/src/assets/MERIDIANOBET-CRUSH-LOGO.webp');
 
-  // El peso es parte del contrato: el maestro PNG pesa 2,2 MB y el WebP servido
+  // El peso es parte del contrato: el maestro PNG pesa 1,8 MB y el WebP servido
   // queda por debajo de 200 KB. Es un WebP estatico (VP8X + ALPH + VP8): el
   // logotipo nuevo es un lockup fijo, no la animacion de cinco fotogramas del
   // tema anterior.
@@ -116,7 +116,7 @@ test('el logotipo de MeridianoBet se sirve ligero y con su proporcion 2:1', () =
 });
 
 test('el maestro del logo vive fuera de public/ y no viaja al CDN', () => {
-  // El PNG pesa 2,2 MB: si se queda en `public/src`, se publica en cada deploy y
+  // El PNG pesa 1,8 MB: si se queda en `public/src`, se publica en cada deploy y
   // el directorio deja de ser solo lo que consume el cliente.
   assert.ok(
     fs.existsSync(LOGO_MASTER_PATH),
@@ -787,14 +787,14 @@ test('la consola y el tablero comparten el mismo eje X en movil', () => {
     'La base del logo se apoya sobre la franja de banderines, por encima del HUD'
   );
 
-  // 5) La chapa del logo: 58 % del ancho del marco y la caja con la proporcion
+  // 5) La chapa del logo: 78 % del ancho del marco y la caja con la proporcion
   //    real del arte (2:1). `--logo-sky` es lo que hay entre el filo superior de
   //    `.machine` y la base del logo: la mitad del sobrante vertical de la
   //    rejilla (alto del escenario menos marco, separacion y consola) mas el
   //    19,87 % del marco que queda por encima de la base. De ahi se descuentan
   //    14 px (10 del balanceo + 4 de colchon), el resto se divide por 1,05 —lo
   //    que trepa la esquina alta del PNG al girar -3° y crecer un 3 %— y se
-  //    duplica porque el ancho es el doble del alto. Sin ese tope el 58 % se
+  //    duplica porque el ancho es el doble del alto. Sin ese tope el 78 % se
   //    corta contra el filo en tablet vertical y en 320 px.
   assert.match(
     heroRule[0],
@@ -803,8 +803,8 @@ test('la consola y el tablero comparten el mismo eje X en movil', () => {
   );
   assert.match(
     heroRule[0],
-    /--logo-w:\s*min\(\s*calc\(var\(--m-w\) \* 0\.58\),\s*max\(0px, \(var\(--logo-sky\) - 14px\) \* 2 \/ 1\.05\)\s*\);/,
-    'El logo apunta al 58 % del ancho del marco y nunca rebasa el filo superior'
+    /--logo-w:\s*min\(\s*calc\(var\(--m-w\) \* 0\.78\),\s*max\(0px, \(var\(--logo-sky\) - 14px\) \* 2 \/ 1\.05\)\s*\);/,
+    'El logo apunta al 78 % del ancho del marco y nunca rebasa el filo superior'
   );
   assert.match(
     heroRule[0],

@@ -112,6 +112,11 @@ el propio origen.
    proporcion y la imagen la rellena entera; si se cambia el arte por otro de
    distinta relacion hay que actualizar ambos sitios o el `object-fit: contain`
    devolvera el aire dentro de la caja.
+   La caja movil apunta al **78 % del ancho del marco** con un tope por el cielo
+   real (`--logo-sky`): en telefonos altos manda el 78 % y el logo se apoya sobre
+   la franja de monedas y banderines del marco, justo encima del HUD; en 320 px y
+   en tablets verticales manda el tope y la pegatina se queda con el aire justo,
+   sin tocar la barra superior ni generar scroll horizontal.
    La barra del navegador movil usa la meta `theme-color`, ya en rojo de marca:
    `<meta name="theme-color" content="#c8102e" />`.
 

@@ -4897,38 +4897,39 @@ body.is-demo .machine__side .controls .balance::after {
       (100cqh - (var(--frame-h) + var(--row-gap) + var(--m-w) * 0.4961)) / 2
       + var(--frame-h) * 0.1987
     );
-    /* El arte nuevo es un lockup horizontal 2:1 (900 x 450, sin aire en el PNG),
-       asi que la caja toma su misma proporcion: el ancho manda y el alto es su
+    /* El arte es un lockup horizontal 2:1 (900 x 450, sin aire en el PNG), asi
+       que la caja toma su misma proporcion: el ancho manda y el alto es su
        mitad. Antes la caja era casi cuadrada (proporcion del PNG vertical
        anterior) y la imagen `contain` dejaba 31 px de cielo DENTRO de su propia
        caja: eso era lo que hacia flotar el logo y dejaba el hueco bajo la barra.
        Con la caja 2:1 la tinta llega al borde inferior y la pegatina se apoya de
-       verdad en el marco. Su borde derecho cae en el 60 % del marco, muy por
-       encima de la franja del HUD (22,96-31,90 % del alto), asi que no tapa ni
-       una cifra.
+       verdad en el marco. Su borde derecho cae en el 80 % del marco, por encima
+       de la franja del HUD (22,96-31,90 % del alto), asi que no tapa ni una
+       cifra.
 
        El segundo termino es el tope por alto, y se aplica en TODO el rango
        movil: de `--logo-sky` se descuentan los 10 px que sube el fotograma 50 %
        de `pana-logo-sticker` y 4 px de colchon; el resto se divide por 1,05,
        que es lo que trepa la esquina alta del PNG al girar -3° sobre el origen
        50 % 70 % y crecer un 3 %, y se duplica porque el ancho es el doble del
-       alto. Asi el filo superior del logo nunca rebasa el borde de `.machine`
-       (que recorta con `overflow: hidden`) ni la barra superior, ni siquiera en
-       el fotograma mas alto del balanceo.
+       alto. Asi el filo superior del logo (que sobresale a proposito del marco,
+       sobre el cielo del escenario) se queda con aire bajo la barra superior
+       incluso en el fotograma mas alto del balanceo.
 
-       En los telefonos altos manda el 58 % del ancho; en los bajos (320 x 568) y
+       En los telefonos altos manda el 78 % del ancho; en los bajos (320 x 568) y
        en las tablets verticales (576 x 800, 768 x 1024), donde la maquina se
        estrecha, manda el tope y el logo se queda con el aire justo. */
     --logo-w: min(
-      calc(var(--m-w) * 0.58),
+      calc(var(--m-w) * 0.78),
       max(0px, (var(--logo-sky) - 14px) * 2 / 1.05)
     );
     --logo-h: calc(var(--logo-w) / 2);
     width: var(--logo-w);
     height: var(--logo-h);
     /* Desplazado a la derecha y apoyado en el marco: el 2 % lo separa del filo
-       izquierdo (el PNG nuevo no trae aire, su tinta arranca en el borde de la
-       caja) y deja el resto del ancho para las banderas y la corona. */
+       izquierdo (el PNG no trae aire, su tinta arranca en el borde de la caja) y
+       deja el 20 % del ancho a la derecha, donde asoman las banderas, las monedas
+       y la pantalla LED del marco. */
     left: calc((100% - var(--m-w)) / 2 + var(--m-w) * 0.02);
     /* Anclado por abajo y 4 % mas bajo que el borde superior de las placas del
        HUD (0,8013 = 1 - 0,1987): la base del logo se monta sobre la franja de
@@ -4947,7 +4948,7 @@ body.is-demo .machine__side .controls .balance::after {
 
   .machine__side .machine__hero::before { display: none; }
 
-  /* El logo manda sobre el cielo: 58 % del ancho del marco y el alto sale de la
+  /* El logo manda sobre el cielo: 78 % del ancho del marco y el alto sale de la
      proporción del PNG, 900 x 450. La caja ya es 2:1, así que la imagen la
      rellena entera (`height: 100%`) sin el aire que dejaba `height: auto` dentro
      de una caja casi cuadrada. El balanceo de `pana-logo-sticker` (más
