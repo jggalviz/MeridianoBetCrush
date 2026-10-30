@@ -10,7 +10,10 @@
  * publica en el CDN y los PNG pesan ~2 MB cada uno:
  *
  *   design/reino_de_caramelos_y_arcoiris.png      1672 x 941    escritorio
- *   design/avenida_fantastica_reino_caramelos.png 1024 x 1536   movil
+ *   design/avenida_fantastica_reino_caramelos.png  941 x 1671   movil
+ *
+ * El maestro movil es hoy el estadio 3D (el nombre del archivo y del WebP se
+ * conservan para no tocar el mapeo del CSS ni del HTML).
  *
  * El CSS sirve uno u otro segun el ancho (`body` para >= 900 px y la media
  * query de 899 px hacia abajo) y los pinta con `cover` + `center`, asi que el

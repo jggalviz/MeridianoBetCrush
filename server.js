@@ -20,8 +20,9 @@
  *  `./server/app`; por eso `express` se importa aqui y se usa en el fallback.
  *
  *  Si la configuracion es invalida (falta SESSION_SECRET, Supabase, etc.) se
- *  responde 503 con un mensaje accionable en lugar de un 500 opaco; el detalle
- *  completo queda en los Runtime Logs del despliegue.
+ *  responde 503 CONFIG_INVALID con el detalle ESTRUCTURADO (`error.problems` y
+ *  `error.missing`, solo nombres de variables) para no depender de los Runtime
+ *  Logs; el detalle completo sigue quedando en ellos.
  * ============================================================================
  */
 
@@ -38,6 +39,17 @@ try {
   // eslint-disable-next-line no-console
   console.error('[vercel] La aplicacion no pudo inicializarse:', detail);
 
+  /*
+   * `server/config.js` adjunta el diagnostico al Error (`problems` + `missingEnv`).
+   * Si el fallo viene de otro modulo se publica su mensaje como unico problema.
+   * Nunca se copian valores de `process.env`: solo textos y nombres.
+   */
+  const problems =
+    Array.isArray(error?.problems) && error.problems.length > 0
+      ? [...error.problems]
+      : [detail];
+  const missing = Array.isArray(error?.missingEnv) ? [...error.missingEnv] : [];
+
   const fallback = express();
   fallback.disable('x-powered-by');
   fallback.use((req, res) => {
@@ -46,8 +58,11 @@ try {
       error: {
         code: 'CONFIG_INVALID',
         message:
-          'El servidor no esta configurado. Define SESSION_SECRET, SUPABASE_URL y ' +
-          'SUPABASE_SERVICE_ROLE_KEY en Vercel (ver docs/DEPLOY_VERCEL.md).'
+          'El servidor no esta configurado: define en Vercel las variables de ' +
+          'entorno que aparecen en "missing" y corrige lo que indique "problems" ' +
+          '(ver docs/DEPLOY_VERCEL.md).',
+        problems,
+        missing
       }
     });
   });

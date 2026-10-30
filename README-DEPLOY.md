@@ -250,6 +250,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 `server/config.js` valida la configuración al arrancar. En `NODE_ENV=production` **lanza una excepción y el proceso no levanta** si ocurre cualquiera de estas condiciones:
 
 - `DB_DRIVER=supabase` sin `SUPABASE_URL` o sin `SUPABASE_SERVICE_ROLE_KEY`.
+- Producción sin credenciales de Supabase (el driver caería a `memory`).
+- `TG_DEMO_OPERATOR_VIRTUAL=1` (es exclusivo de desarrollo local).
 - `DB_DRIVER=memory` con `NODE_ENV=production`.
 - `SUPABASE_URL` que no sea una URL `https://*.supabase.co`.
 - `SESSION_SECRET` que no sea hexadecimal de exactamente 64 caracteres (32 bytes).
@@ -257,7 +259,23 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - `DEMO_START_BALANCE_CENTS <= 0` con el modo demo activo.
 - TTL demo menor de 60 segundos o topes `DEMO_MAX_*` menores que 1.
 
-En ECS/App Runner esto se traduce en un **health check fallido**; en Vercel, en `503 CONFIG_INVALID`. Revisa los logs del servicio: el mensaje indica exactamente qué variable corregir.
+En ECS/App Runner esto se traduce en un **health check fallido**; en Vercel, en `503 CONFIG_INVALID`. `server/config.js` adjunta el diagnóstico al error de arranque y `server.js` lo publica en el cuerpo del 503:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "CONFIG_INVALID",
+    "message": "El servidor no esta configurado: ...",
+    "problems": ["En produccion faltan las credenciales de Supabase (SUPABASE_URL); ..."],
+    "missing": ["SUPABASE_URL"]
+  }
+}
+```
+
+`error.problems` son mensajes accionables y `error.missing` solo **nombres** de variables sin definir: nunca se exponen valores. El mismo detalle aparece en los logs del servicio.
+
+> `.env` **no** se usa en el despliegue. `server/config.js` llama a `dotenv` solo para desarrollo local (y `vercel.json` excluye `.env*` del bundle de la función): en Vercel todas las variables deben existir en *Project Settings → Environment Variables* para el entorno del deploy (Production **y** Preview) y hay que **redesplegar** después de añadirlas.
 
 ### 2.5 CORS y cookies
 
@@ -1202,7 +1220,7 @@ curl -sSI -H 'Accept-Encoding: br,gzip' "$BASE/ui/main.js" \
 | JS se sirve como `text/html` | Fallback global 403/404 → `index.html` o `Content-Type` mal puesto | Usa la CloudFront Function de §4.6 y fija `text/javascript; charset=utf-8` |
 | `Refused to connect ... connect-src` | API en otro origen y CSP sin ampliar | Opción A (proxy `/api/*`) o añade el dominio a `connect-src` |
 | `403 CORS_FORBIDDEN` | Dominio público fuera de `ALLOWED_ORIGINS` | Añade `https://tu-dominio` y redespliega el backend |
-| `503 CONFIG_INVALID` (Vercel) o health check fallido (ECS) | Falta `SESSION_SECRET`, Supabase o `ALLOW_DEV_SESSION=false` | Corrige variables y reinicia el servicio |
+| `503 CONFIG_INVALID` (Vercel) o health check fallido (ECS) | Falta o es inválida alguna variable de entorno | Lee `error.missing` / `error.problems` del cuerpo del 503, corrige esas variables y redespliega |
 | `500` en `/api/spin` | Esquema/RPC de Supabase no aplicado o credenciales inválidas | Ejecuta `sql/schema.sql` y valida la `service_role` |
 | `401 TOKEN_MISSING` | Demo desactivado y sin token del IdP | Activa `DEMO_MODE_ENABLED` o integra el IdP |
 | `403 DEMO_DISABLED` | `DEMO_MODE_ENABLED=false` | Cambia la variable si el modo prueba debe estar disponible |

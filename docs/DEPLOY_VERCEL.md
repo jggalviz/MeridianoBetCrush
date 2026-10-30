@@ -129,10 +129,35 @@ acepta el mismo host automáticamente.
 
 - `DB_DRIVER=memory` está **prohibido**.
 - `ALLOW_DEV_SESSION=true` está **prohibido**.
+- `TG_DEMO_OPERATOR_VIRTUAL=1` está **prohibido** (es modo local).
 - `SESSION_SECRET` inválido o Supabase incompleto abortan el arranque.
 
-En ese caso `server.js` responde `503 CONFIG_INVALID` con un mensaje accionable
-y el detalle completo aparece en **Runtime Logs**.
+En ese caso `server.js` responde `503 CONFIG_INVALID` y el cuerpo trae el
+diagnóstico sin esperar a los Runtime Logs:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "CONFIG_INVALID",
+    "message": "El servidor no esta configurado: ...",
+    "problems": ["DB_DRIVER=supabase requiere SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY (faltan: SUPABASE_SERVICE_ROLE_KEY)"],
+    "missing": ["SUPABASE_SERVICE_ROLE_KEY"]
+  }
+}
+```
+
+- `missing`: **nombres** de variables obligatorias (`DB_DRIVER`, `SESSION_SECRET`,
+  `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ALLOW_DEV_SESSION`) sin definir.
+- `problems`: mensajes de la validación (formato inválido, valor prohibido…).
+- Nunca se incluyen **valores** de `process.env`; el detalle completo sigue
+  apareciendo en **Runtime Logs**.
+
+> `.env` no se usa en Vercel: `server/config.js` carga `dotenv` solo para
+> desarrollo local y `vercel.json` excluye `.env*` del bundle de la función. Las
+> variables deben existir en *Settings → Environment Variables* del entorno que
+> estás desplegando (Production **y** Preview) y hay que **redesplegar** después
+> de añadirlas o cambiarlas: una función ya construida no ve las nuevas.
 
 ## 5. Cómo se enruta
 
@@ -289,7 +314,7 @@ pública, el comportamiento actual es aceptable.
 | --- | --- |
 | Sigue el 404 en `/` | El bundle no incluye `server/generated/indexHtml.js` o hay un `Root Directory`/`Output Directory` heredado; revisa el build y *Project Settings* |
 | `GET /` devuelve HTML viejo | `server/generated/indexHtml.js` desactualizado: `npm run build:index` y redeploy (Vercel ejecuta `vercel-build`) |
-| `503 CONFIG_INVALID` | Faltan `SESSION_SECRET` / Supabase; revisa Runtime Logs y redeploy tras añadir variables |
+| `503 CONFIG_INVALID` | Falta o es inválida alguna variable de entorno | Lee `error.missing` y `error.problems` del cuerpo del 503, corrige esas variables y haz **Redeploy** |
 | `500` en `/api/*` | Credenciales de Supabase inválidas o `sql/schema.sql` sin ejecutar |
 | `403 CORS_FORBIDDEN` | Frontend en otro dominio: añádelo a `ALLOWED_ORIGINS` |
 | `401 TOKEN_MISSING` | Usa `POST /api/demo/session` (modo demo) o el token del IdP |

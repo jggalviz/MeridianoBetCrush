@@ -14,8 +14,14 @@
  * descentraria el dibujo y desalinearia las areas tactiles.
  *
  * Piezas:
- *   design/marco_movil.png   -> public/src/assets/marco_movil.webp   (1392 x 1123)
- *   design/consola_movil.png -> public/src/assets/consola_movil.webp (1783 x 693)
+ *   design/marco_movil.png   -> public/src/assets/marco_movil.webp   (1392 x 1093)
+ *   design/consola_movil.png -> public/src/assets/consola_movil.webp (1780 x 883)
+ *
+ * Los dos maestros vigentes son el marco deportivo (focos, banderines y monedas
+ * alrededor de las tres placas del HUD) y el panel azul con corona dorada (cinco
+ * discos y cuatro placas de pie). Los nombres de destino NO cambian: el CSS y el
+ * HTML siguen apuntando a `marco_movil.webp` y `consola_movil.webp`, asi que el
+ * cambio de arte no toca el mapeo de los componentes.
  *
  * `design/marco_movil_v1.png` es el maestro anterior (toldo con la nube rosa a
  * la izquierda, 1325 x 941 tras el recorte). Se conserva como referencia: el
@@ -44,19 +50,27 @@ const DEPLOY_DIR = path.join(ROOT, '.vercel', 'output', 'static', 'src', 'assets
  *
  * `quality` sube en la consola porque sus degradados dorados hacen banding
  * visible muy por debajo de 92.
+ *
+ * Presupuesto (el arte nuevo trae mas detalle que el anterior):
+ *   - el marco deportivo pesa 325 kB a q=90 y 304 kB a q=88; a q=86 se queda en
+ *     290 kB y el tope de 300 kB del test sigue intacto;
+ *   - el panel azul con corona es la pieza movil mas rica (1780x883, 28 % mas
+ *     pixeles que la anterior) y a q=92 pesa 482 kB: su tope sube a 512 kB en
+ *     vez de bajar la calidad y arriesgar banding en el azul y el dorado (d5 de
+ *     escritorio ya viaja con 560 kB).
  */
 const PIECES = [
   {
     name: 'marco_movil',
-    canvas: { width: 1392, height: 1123 },
-    quality: 90,
+    canvas: { width: 1392, height: 1093 },
+    quality: 86,
     maxBytes: 300 * 1024
   },
   {
     name: 'consola_movil',
-    canvas: { width: 1783, height: 693 },
+    canvas: { width: 1780, height: 883 },
     quality: 92,
-    maxBytes: 300 * 1024
+    maxBytes: 512 * 1024
   }
 ];
 
@@ -108,10 +122,17 @@ async function build({ name, canvas, quality, maxBytes }) {
     );
   }
 
-  const trimmed = await sharp(source)
+  // Si el recorte ya mide el lienzo no se reescala: un `resize` a la misma
+  // medida re-muestrea (y encarece el WebP) sin aportar nada.
+  const cropped = sharp(source)
     .ensureAlpha()
-    .extract({ left: box.left, top: box.top, width: box.width, height: box.height })
-    .resize(canvas.width, canvas.height, { fit: 'fill' })
+    .extract({ left: box.left, top: box.top, width: box.width, height: box.height });
+  const fitted =
+    box.width === canvas.width && box.height === canvas.height
+      ? cropped
+      : cropped.resize(canvas.width, canvas.height, { fit: 'fill' });
+
+  const trimmed = await fitted
     .webp({ quality, alphaQuality: 100, effort: 6, smartSubsample: true })
     .toBuffer();
 

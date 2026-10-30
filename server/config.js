@@ -52,6 +52,29 @@ const supabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const SESSION_SECRET = str('SESSION_SECRET');
 
 /**
+ * Variables que un despliegue de produccion necesita ver DEFINIDAS.
+ *
+ * Se usa solo para diagnostico: cuando el arranque aborta, `server.js` publica
+ * los NOMBRES ausentes (`missingEnv`) en el cuerpo del 503 `CONFIG_INVALID`.
+ * El valor de una variable nunca sale de este modulo.
+ */
+const REQUIRED_ENV = Object.freeze([
+  'DB_DRIVER',
+  'SESSION_SECRET',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'ALLOW_DEV_SESSION'
+]);
+
+/** Nombres obligatorios que llegan vacios o sin definir. */
+const missingEnv = REQUIRED_ENV.filter((name) => str(name) === '');
+
+/** Credenciales de Supabase ausentes (para nombrarlas en el diagnostico). */
+const missingSupabaseEnv = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'].filter(
+  (name) => str(name) === ''
+);
+
+/**
  * Modo autonomo local ("operador virtual").
  *
  * Con `TG_DEMO_OPERATOR_VIRTUAL=1` el backend no depende de nada externo:
@@ -114,10 +137,22 @@ const DB_DRIVER = TG_DEMO_OPERATOR_VIRTUAL
 const problems = [];
 
 if (DB_DRIVER === 'supabase' && !supabaseConfigured) {
-  problems.push('DB_DRIVER=supabase requiere SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY');
+  problems.push(
+    `DB_DRIVER=supabase requiere SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY ` +
+      `(faltan: ${missingSupabaseEnv.join(', ')})`
+  );
 }
 if (DB_DRIVER === 'memory' && IS_PRODUCTION) {
   problems.push('DB_DRIVER=memory esta prohibido con NODE_ENV=production');
+}
+if (IS_PRODUCTION && !supabaseConfigured && DB_DRIVER !== 'supabase') {
+  // Sin credenciales el driver cae a memoria; se nombra la causa real para que
+  // el 503 no parezca un problema de codigo.
+  problems.push(
+    `En produccion faltan las credenciales de Supabase (${missingSupabaseEnv.join(
+      ', '
+    )}); sin ellas el driver cae a memoria`
+  );
 }
 if (TG_DEMO_OPERATOR_VIRTUAL && IS_PRODUCTION) {
   problems.push(
@@ -146,7 +181,17 @@ if (DEMO_MAX_SESSIONS < 1 || DEMO_MAX_IDEMPOTENT_ROUNDS < 1) {
 if (problems.length > 0) {
   const message = `Configuracion invalida:\n  - ${problems.join('\n  - ')}`;
   if (IS_PRODUCTION || process.env.NODE_ENV === 'test') {
-    throw new Error(message);
+    /**
+     * El error viaja con el diagnostico estructurado para que el entrypoint de
+     * Vercel (`server.js`) pueda publicarlo en el 503 sin releer `process.env`
+     * y sin exponer valores: `problems` son mensajes y `missingEnv` son
+     * NOMBRES de variables.
+     */
+    const error = new Error(message);
+    error.code = 'CONFIG_INVALID';
+    error.problems = Object.freeze([...problems]);
+    error.missingEnv = Object.freeze([...missingEnv]);
+    throw error;
   }
   // En desarrollo se avisa pero se permite continuar con valores por defecto.
   // eslint-disable-next-line no-console
