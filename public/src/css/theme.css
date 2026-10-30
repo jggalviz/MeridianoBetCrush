@@ -1,0 +1,256 @@
+/* ==========================================================================
+   MERIDIANOBET · capa de tema (solo presentacion)
+
+   Se carga DESPUES de `style.css` y no la sustituye: reasigna tokens y repinta
+   las superficies que el CSS dibuja. La maqueta (rejillas, medidas, animaciones)
+   y el arte siguen siendo los de la base.
+
+   Como se activa
+   --------------
+   Todo el tema vive bajo `html[data-theme="meridianobet"]`. Basta con poner el
+   atributo en la etiqueta <html> de `public/index.html`:
+
+     <html lang="es" data-theme="meridianobet">
+
+   Sin ese atributo la hoja queda inerte y el juego se ve igual que antes, asi
+   que sirve para comparar los dos temas con el mismo binario. Se revierte
+   quitando el atributo.
+
+   Que cubre esta hoja
+   -------------------
+   - Paleta de marca: `--brand-*` (rojo, blanco y grafito).
+   - Acentos magenta del juego -> rojo. El oro NO se toca: es el color del
+     premio (saldo, S9, "MAX") y mantiene su lectura.
+   - Barra superior, boton "Fichas de Prueba", modal y anillo de foco.
+   - Ventana de juego: marco interior del tablero y las 30 casillas, que si
+     se pintan con gradientes (`.board`, `.tile`) y no con imagen.
+
+   Que NO cubre (requiere reexportar arte, ver `docs/REBRANDING.md`)
+   ----------------------------------------------------------------
+   - Escenario de fondo y logotipo (`fondo_desktop`, `PANA-CRUSH-LOGO`).
+   - Marco del tablero y carcasa de controles: `d1.webp` (marco escritorio),
+     `marco_movil.webp`, `consola_movil.webp`, y en escritorio `d5.webp`
+     (nube del logo) y `d3.webp` (los siete pulsadores). Los botones de
+     escritorio son RECORTES de `d3.webp` colocados por porcentajes medidos
+     sobre el dibujo: no hay gradiente que repintar ahi.
+   - Los 20 simbolos de las casillas (`assets/sym/*`).
+
+   Reglas de mantenimiento
+   -----------------------
+   - Sin `!important`: los selectores llevan prefijo del tema y ganan por
+     especificidad a las reglas base.
+   - Solo color, fondo, borde, sombra y tipografia: ni medidas ni rejillas
+     (lo comprueba `test/frontendAssets.test.js`).
+   - `public/src/**` se sirve con `Cache-Control: no-cache`, asi que los
+     cambios se ven al recargar.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Tokens de marca (inertes hasta activar el tema)
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Rojos de Meridianobet */
+  --brand-red: #c8102e;
+  --brand-red-dark: #8f0a1f;
+  --brand-red-soft: #e04a5f;
+  --brand-red-tint: #fdeaec;
+
+  /* Blancos y grafito */
+  --brand-white: #ffffff;
+  --brand-grey-50: #f7f8fa;
+  --brand-grey-100: #eef0f4;
+  --brand-grey-200: #dcdfe6;
+  --brand-grey-400: #9aa1ad;
+  --brand-grey-700: #4a505b;
+  --brand-grey-800: #2e3238;
+  --brand-grey-900: #23262c;
+  --brand-ink: #1b1e23;
+
+  /* Tipografia de marca: mismos stacks locales (Fredoka / Lilita One).
+     Cambiar de familia = editar estas dos variables (los `@font-face` de
+     `style.css` siguen valiendo). */
+  --brand-font: 'Fredoka', 'Lilita One', 'Trebuchet MS', 'Segoe UI', system-ui,
+    -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --brand-font-display: 'Lilita One', 'Fredoka', 'Trebuchet MS', 'Segoe UI',
+    system-ui, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   2. Tema Meridianobet (<html data-theme="meridianobet">)
+   -------------------------------------------------------------------------- */
+
+html[data-theme="meridianobet"] {
+  /* Acentos: el magenta del tema base pasa a rojo corporativo. */
+  --mint: var(--brand-red);
+  --coral: var(--brand-red-dark);
+  --mango: var(--brand-red-soft);
+
+  --shadow: 0 14px 32px rgba(27, 30, 35, 0.14);
+
+  --font: var(--brand-font);
+  --font-display: var(--brand-font-display);
+}
+
+/* --------------------------------------------------------------------------
+   3. Ventana de juego: marco interior del tablero y casillas
+   Estas dos piezas SI se pintan con gradientes en `style.css`, asi que el tema
+   puede repintarlas sin tocar el arte del marco (`d1.webp`) ni la rejilla.
+   Se mantienen las cinco capas del fondo base y solo cambian los colores:
+   brillo superior, luz inferior, cuerpo blanco-gris y filo con cierre rojo.
+   -------------------------------------------------------------------------- */
+
+html[data-theme="meridianobet"] .board {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.95), transparent 30%) padding-box,
+    radial-gradient(circle at 84% 24%, rgba(255, 255, 255, 0.75), transparent 26%) padding-box,
+    radial-gradient(circle at 50% 105%, rgba(200, 16, 46, 0.20), transparent 56%) padding-box,
+    linear-gradient(145deg, var(--brand-white) 0%, var(--brand-grey-100) 38%, var(--brand-grey-200) 72%, #cdd1d9 100%) padding-box,
+    linear-gradient(135deg, var(--brand-white) 0%, var(--brand-grey-200) 36%, var(--brand-red) 74%, var(--brand-red-dark) 100%) border-box;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.72),
+    0 0 34px rgba(200, 16, 46, 0.26),
+    inset 0 0 38px rgba(255, 255, 255, 0.6),
+    inset 0 -10px 26px rgba(200, 16, 46, 0.10),
+    0 24px 52px rgba(10, 12, 16, 0.34);
+}
+
+/* Reticula del fondo: pasa de trama rosa a trama grafito muy tenue. */
+html[data-theme="meridianobet"] .board::after {
+  background:
+    repeating-linear-gradient(90deg, rgba(27, 30, 35, 0.05) 0 1px, transparent 1px 13.5%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.6), transparent 55%);
+  mix-blend-mode: normal;
+  opacity: 0.9;
+}
+
+/* Casillas normales y comodines (`S*`). */
+html[data-theme="meridianobet"] .tile,
+html[data-theme="meridianobet"] .tile[data-sym^="S"] {
+  border-color: rgba(27, 30, 35, 0.12);
+  background: linear-gradient(180deg, var(--brand-white), var(--brand-grey-50) 62%, var(--brand-grey-100));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -8px 14px rgba(27, 30, 35, 0.04),
+    0 4px 12px rgba(27, 30, 35, 0.12);
+}
+
+/* S9 se queda dorado: es el simbolo de premio alto. */
+html[data-theme="meridianobet"] .tile[data-sym="S9"] {
+  border-color: rgba(214, 160, 20, 0.75);
+  background: linear-gradient(180deg, #fffdf0, #fff1c4 62%, #ffe39a);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 18px rgba(255, 199, 61, 0.4);
+}
+
+/* Dispersion: celda blanca con doble halo (oro + rojo). */
+html[data-theme="meridianobet"] .tile[data-sym="SC"] {
+  border-color: rgba(200, 16, 46, 0.55);
+  background: radial-gradient(circle at 50% 40%, var(--brand-white) 0%, #fff4f6 48%, #ffe0e5 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 24px rgba(200, 16, 46, 0.30),
+    0 0 44px rgba(255, 199, 61, 0.26);
+}
+
+/* Bomba multiplicadora: tinte rojo de marca. */
+html[data-theme="meridianobet"] .tile[data-sym="MX"] {
+  border-color: rgba(200, 16, 46, 0.70);
+  background: radial-gradient(circle at 50% 40%, var(--brand-white) 0%, var(--brand-red-tint) 52%, #f7c9d0 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 24px rgba(200, 16, 46, 0.42);
+}
+
+html[data-theme="meridianobet"] .tile--win {
+  border-color: rgba(255, 214, 92, 0.95);
+  box-shadow:
+    0 0 26px rgba(255, 199, 61, 0.85),
+    0 0 52px rgba(200, 16, 46, 0.4);
+}
+
+html[data-theme="meridianobet"] .tile--scatter {
+  border-color: var(--brand-red);
+}
+
+/* Etiqueta de valor de la bomba: de caramelo a pastilla de marca. */
+html[data-theme="meridianobet"] .tile__bomb-value {
+  border-color: rgba(255, 255, 255, 0.85);
+  color: var(--brand-white);
+  background: linear-gradient(180deg, var(--brand-red-soft), var(--brand-red) 60%, var(--brand-red-dark));
+  box-shadow: 0 3px 8px rgba(80, 0, 14, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+
+
+/* --------------------------------------------------------------------------
+   4. Barra superior y firma de marca
+   La barra es DOM con fondo CSS: aqui si cambia de caramelo a blanco de marca.
+   -------------------------------------------------------------------------- */
+
+html[data-theme="meridianobet"] .topbar {
+  border-color: var(--brand-grey-200);
+  background: linear-gradient(150deg, var(--brand-white), var(--brand-grey-50));
+  box-shadow: 0 10px 26px rgba(27, 30, 35, 0.18);
+}
+
+/* El brillo diagonal de caramelo no forma parte de la identidad. */
+html[data-theme="meridianobet"] .topbar::after {
+  background: none;
+}
+
+html[data-theme="meridianobet"] .brand__title {
+  color: var(--brand-ink);
+}
+
+html[data-theme="meridianobet"] .brand__title span {
+  color: var(--brand-red);
+}
+
+html[data-theme="meridianobet"] .brand__sub {
+  color: var(--brand-grey-700);
+}
+
+/* --------------------------------------------------------------------------
+   5. Boton "Fichas de Prueba" (accion de marca, vive en la barra superior)
+   -------------------------------------------------------------------------- */
+
+html[data-theme="meridianobet"] .topbar .btn--demo {
+  border-color: var(--brand-red-dark);
+  background: linear-gradient(180deg, var(--brand-red-soft), var(--brand-red) 62%, var(--brand-red-dark));
+  box-shadow: 0 8px 18px rgba(143, 10, 31, 0.32);
+}
+
+html[data-theme="meridianobet"] .topbar .btn--demo .btn__title {
+  color: var(--brand-white);
+}
+
+html[data-theme="meridianobet"] .topbar .btn--demo .btn__sub {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+html[data-theme="meridianobet"] .topbar .btn--demo[aria-pressed="true"] {
+  border-color: var(--brand-red-dark);
+  box-shadow:
+    0 0 0 2px rgba(200, 16, 46, 0.24),
+    0 10px 22px rgba(143, 10, 31, 0.32);
+}
+
+/* --------------------------------------------------------------------------
+   6. Modal de reglas y anillo de foco
+   -------------------------------------------------------------------------- */
+
+html[data-theme="meridianobet"] .modal__backdrop {
+  background: rgba(20, 23, 28, 0.66);
+}
+
+html[data-theme="meridianobet"] .modal__card {
+  border-color: var(--brand-grey-200);
+  background: linear-gradient(165deg, var(--brand-white), var(--brand-grey-100));
+  box-shadow: 0 30px 70px rgba(10, 12, 16, 0.45);
+}
+
+html[data-theme="meridianobet"] :focus-visible {
+  outline: 2px solid var(--brand-red);
+}
