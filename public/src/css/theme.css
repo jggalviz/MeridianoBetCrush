@@ -18,10 +18,13 @@
 
    Que cubre esta hoja
    -------------------
-   - Paleta de marca: `--brand-*` (rojo, blanco y grafito).
+   - Paleta de marca: `--brand-*` (rojo y oro) y el azul de la consola
+     (`--brand-blue*`), tomado de los pulsadores azules del case.
    - Acentos magenta del juego -> rojo. El oro NO se toca: es el color del
-     premio (saldo, S9, "MAX") y mantiene su lectura.
-   - Barra superior, boton "Fichas de Prueba", modal y anillo de foco.
+     premio (saldo, S9, "MAX") y mantiene su lectura. El azul tampoco compite con
+     el premio: viste las superficies de la interfaz (barra y casillas).
+   - Barra superior (vidrio azul), boton "Fichas de Prueba", modal y anillo de
+     foco.
    - Ventana de juego: marco interior del tablero y las 30 casillas, que si
      se pintan con gradientes (`.board`, `.tile`) y no con imagen.
 
@@ -58,6 +61,15 @@
 
   /* Oro del logotipo: el "CRUSH" y la ficha del boton de prueba. */
   --brand-gold: #ffc21a;
+
+  /* Azul de la consola: los mismos tonos que los pulsadores azules del case
+     (`--gbtn-blue-*` en `style.css`), con el aclarado `#8caaff` como cabeza del
+     vidrio. La barra superior y las casillas giran sobre esta gama para que la
+     interfaz hable un solo idioma. */
+  --brand-blue: #5a72f4;
+  --brand-blue-deep: #2e36bc;
+  /* Tinta oscura del azul: sirve de contorno y de base de las sombras. */
+  --brand-blue-ink: #101a4d;
 
   /* Blancos y grafito */
   --brand-white: #ffffff;
@@ -100,42 +112,50 @@ html[data-theme="meridianobet"] {
    Estas dos piezas SI se pintan con gradientes en `style.css`, asi que el tema
    puede repintarlas sin tocar el arte del marco (`d1.webp`) ni la rejilla.
    Se mantienen las cinco capas del fondo base y solo cambian los colores:
-   brillo superior, luz inferior, cuerpo blanco-gris y filo con cierre rojo.
+   brillo superior, luz inferior, cuerpo azul palido y filo con cierre azul.
    -------------------------------------------------------------------------- */
 
 html[data-theme="meridianobet"] .board {
   background:
     radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.95), transparent 30%) padding-box,
     radial-gradient(circle at 84% 24%, rgba(255, 255, 255, 0.75), transparent 26%) padding-box,
-    radial-gradient(circle at 50% 105%, rgba(200, 16, 46, 0.20), transparent 56%) padding-box,
-    linear-gradient(145deg, var(--brand-white) 0%, var(--brand-grey-100) 38%, var(--brand-grey-200) 72%, #cdd1d9 100%) padding-box,
-    linear-gradient(135deg, var(--brand-white) 0%, var(--brand-grey-200) 36%, var(--brand-red) 74%, var(--brand-red-dark) 100%) border-box;
+    radial-gradient(circle at 50% 105%, rgba(46, 54, 188, 0.22), transparent 56%) padding-box,
+    linear-gradient(145deg, #f8faff 0%, #e8edff 38%, #d7dffb 72%, #c5cff4 100%) padding-box,
+    linear-gradient(135deg, #ffffff 0%, #d7dffb 36%, var(--brand-blue) 74%, var(--brand-blue-deep) 100%) border-box;
   box-shadow:
     0 0 0 2px rgba(255, 255, 255, 0.72),
-    0 0 34px rgba(200, 16, 46, 0.26),
-    inset 0 0 38px rgba(255, 255, 255, 0.6),
-    inset 0 -10px 26px rgba(200, 16, 46, 0.10),
+    0 0 34px rgba(46, 54, 188, 0.30),
+    inset 0 0 38px rgba(255, 255, 255, 0.55),
+    inset 0 -10px 26px rgba(46, 54, 188, 0.14),
     0 24px 52px rgba(10, 12, 16, 0.34);
 }
 
-/* Reticula del fondo: pasa de trama rosa a trama grafito muy tenue. */
+/* Reticula del fondo: pasa de trama rosa a trama azul tinta muy tenue. */
 html[data-theme="meridianobet"] .board::after {
   background:
-    repeating-linear-gradient(90deg, rgba(27, 30, 35, 0.05) 0 1px, transparent 1px 13.5%),
+    repeating-linear-gradient(90deg, rgba(16, 26, 77, 0.055) 0 1px, transparent 1px 13.5%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.6), transparent 55%);
   mix-blend-mode: normal;
   opacity: 0.9;
 }
 
-/* Casillas normales y comodines (`S*`). */
+/* Casillas normales y comodines (`S*`): vidrio azul translucido sobre el
+   interior palido del tablero. El alfa deja ver la reticula y el degradado del
+   marco, y el filo blanco translucido mantiene separadas las 30 celdas cuando
+   el fondo de detras tambien es azul. */
 html[data-theme="meridianobet"] .tile,
 html[data-theme="meridianobet"] .tile[data-sym^="S"] {
-  border-color: rgba(27, 30, 35, 0.12);
-  background: linear-gradient(180deg, var(--brand-white), var(--brand-grey-50) 62%, var(--brand-grey-100));
+  border-color: rgba(255, 255, 255, 0.62);
+  background: linear-gradient(
+    180deg,
+    rgba(168, 196, 255, 0.62) 0%,
+    rgba(122, 152, 246, 0.46) 58%,
+    rgba(74, 96, 214, 0.42) 100%
+  );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -8px 14px rgba(27, 30, 35, 0.04),
-    0 4px 12px rgba(27, 30, 35, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -8px 16px rgba(16, 26, 77, 0.16),
+    0 4px 12px rgba(16, 26, 77, 0.22);
 }
 
 /* S9 se queda dorado: es el simbolo de premio alto. */
@@ -166,14 +186,20 @@ html[data-theme="meridianobet"] .tile[data-sym="MX"] {
     0 0 24px rgba(200, 16, 46, 0.42);
 }
 
-html[data-theme="meridianobet"] .tile--win {
+/* Victoria y dispersion: el filo y el halo tienen que ganar tambien a las
+   casillas comodin, que se pintan con `.tile[data-sym^="S"]` (mas especifica por
+   el atributo). Por eso la regla se ata a `.tile[data-sym].tile--win`, con la
+   misma especificidad y mas abajo en la hoja. */
+html[data-theme="meridianobet"] .tile.tile--win,
+html[data-theme="meridianobet"] .tile[data-sym].tile--win {
   border-color: rgba(255, 214, 92, 0.95);
   box-shadow:
     0 0 26px rgba(255, 199, 61, 0.85),
     0 0 52px rgba(200, 16, 46, 0.4);
 }
 
-html[data-theme="meridianobet"] .tile--scatter {
+html[data-theme="meridianobet"] .tile.tile--scatter,
+html[data-theme="meridianobet"] .tile[data-sym].tile--scatter {
   border-color: var(--brand-red);
 }
 
@@ -189,19 +215,31 @@ html[data-theme="meridianobet"] .tile__bomb-value {
 
 /* --------------------------------------------------------------------------
    4. Barra superior y firma de marca
-   La barra es DOM con fondo CSS: aqui si cambia de caramelo a blanco de marca.
-   El color del balon y de la ficha sale de estos tokens; el dibujo vive en el
-   HTML (`.brand__ball`) y su geometria en `style.css`.
+   La barra es DOM con fondo CSS: aqui si cambia de caramelo a vidrio azul (el
+   azul de la consola, translucido). El color del balon y de la ficha sale de
+   estos tokens; el dibujo vive en el HTML (`.brand__ball`) y su geometria en
+   `style.css`.
    -------------------------------------------------------------------------- */
 
 html[data-theme="meridianobet"] .topbar {
-  border-color: var(--brand-grey-200);
-  /* Filo superior rojo: el acento de la casa, sin tocar el grosor base. */
-  border-top-color: var(--brand-red);
-  background: linear-gradient(180deg, var(--brand-white), var(--brand-grey-50));
+  /* Vidrio azul: el mismo azul de la consola, con alfa y `backdrop-filter`
+     para que el estadio se lea por detras sin perder el texto. El filo claro
+     superior da el canto de cristal y sustituye al acento rojo, que sobre azul
+     se apagaba. */
+  border-color: rgba(255, 255, 255, 0.26);
+  border-top-color: rgba(255, 255, 255, 0.55);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(140, 170, 255, 0.88) 0%,
+      rgba(90, 114, 244, 0.86) 50%,
+      rgba(46, 54, 188, 0.84) 100%
+    );
   box-shadow:
-    0 10px 26px rgba(27, 30, 35, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    0 12px 28px rgba(16, 26, 77, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(16, 26, 77, 0.2);
+  backdrop-filter: blur(14px) saturate(1.25);
 }
 
 /* El brillo diagonal de caramelo no forma parte de la identidad. */
@@ -215,7 +253,7 @@ html[data-theme="meridianobet"] .brand__mark {
   border-color: var(--brand-red);
   background: radial-gradient(circle at 34% 26%, var(--brand-white) 0%, #fff8f6 46%, var(--brand-red-tint) 100%);
   box-shadow:
-    0 6px 14px rgba(143, 10, 31, 0.18),
+    0 6px 14px rgba(16, 26, 77, 0.34),
     inset 0 0 0 1px rgba(255, 255, 255, 0.9);
 }
 
@@ -237,31 +275,33 @@ html[data-theme="meridianobet"] .brand__ball-seams {
   stroke-linecap: round;
 }
 
-/* Titulo: "MeridianoBet" en tinta y "Crush" en el oro del logotipo, con el
-   contorno rojo del arte y sin la extrucion lila del caramelo. */
+/* Titulo: "MeridianoBet" en blanco y "Crush" en el oro del logotipo. Sobre el
+   vidrio azul el contorno pasa del rojo del arte al azul tinta: el rojo a 1 px
+   sobre azul vibra, y el tinta mantiene el oro legible sin competir con el. */
 html[data-theme="meridianobet"] .brand__title {
-  color: var(--brand-ink);
+  color: var(--brand-white);
   -webkit-text-stroke: 0;
-  text-shadow: 0 1px 0 rgba(27, 30, 35, 0.10);
+  text-shadow: 0 1px 2px rgba(16, 26, 77, 0.45);
 }
 
 html[data-theme="meridianobet"] .brand__title .brand__crush {
   color: var(--brand-gold);
-  -webkit-text-stroke: 1.1px var(--brand-red-dark);
+  -webkit-text-stroke: 1.1px var(--brand-blue-ink);
   paint-order: stroke fill;
-  text-shadow: 0 2px 0 rgba(143, 10, 31, 0.28);
+  text-shadow: 0 2px 0 rgba(16, 26, 77, 0.45);
 }
 
-/* La etiqueta 6x5 es el unico bloque solido: rojo con cifras blancas. */
+/* La etiqueta 6x5 es el unico bloque solido: rojo con cifras blancas. El filo
+   azul tinta la separa del vidrio de la barra. */
 html[data-theme="meridianobet"] .brand__title .brand__grid {
   color: var(--brand-white);
   -webkit-text-stroke: 0;
   background: var(--brand-red);
-  box-shadow: 0 1px 0 var(--brand-red-dark);
+  box-shadow: 0 1px 0 var(--brand-blue-ink);
 }
 
 html[data-theme="meridianobet"] .brand__sub {
-  color: var(--brand-grey-700);
+  color: rgba(255, 255, 255, 0.86);
 }
 
 /* --------------------------------------------------------------------------
@@ -269,9 +309,11 @@ html[data-theme="meridianobet"] .brand__sub {
    -------------------------------------------------------------------------- */
 
 html[data-theme="meridianobet"] .topbar .btn--demo {
-  border-color: var(--brand-red-dark);
+  border-color: rgba(255, 255, 255, 0.55);
   background: linear-gradient(180deg, var(--brand-red-soft), var(--brand-red) 62%, var(--brand-red-dark));
-  box-shadow: 0 8px 18px rgba(143, 10, 31, 0.32);
+  box-shadow:
+    0 8px 18px rgba(16, 26, 77, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 html[data-theme="meridianobet"] .topbar .btn--demo .btn__title {
@@ -292,33 +334,37 @@ html[data-theme="meridianobet"] .topbar .btn--demo[aria-pressed="true"] {
     0 10px 22px rgba(143, 10, 31, 0.32);
 }
 
-/* Capsula de audio: pastilla gris clara con los dos iconos a tinta. */
+/* Capsula de audio: vidrio claro translucido sobre la barra azul. El alfa alto
+   mantiene el area tactil legible y deja pasar el tono de la barra por detras. */
 html[data-theme="meridianobet"] .topbar__audio {
-  border-color: var(--brand-grey-200);
-  background: linear-gradient(180deg, var(--brand-white), var(--brand-grey-100));
-  box-shadow: inset 0 1px 0 var(--brand-white);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 242, 255, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 6px rgba(16, 26, 77, 0.18);
+  backdrop-filter: blur(6px);
 }
 
 /* Las capas de caramelo pintan cada icono como una teja ciruela. Aqui el fondo
-   lo pone la pastilla, asi que el boton va plano: mismo tono de tinta que el
-   rotulo y ni borde ni sombra propios. */
+   lo pone la pastilla, asi que el boton va plano y a tinta azul marino, que es
+   el tono oscuro del cristal de la barra. */
 html[data-theme="meridianobet"] .topbar .topbar__audio .icon-btn {
-  color: var(--brand-grey-800);
+  color: var(--brand-blue-ink);
   border-color: transparent;
   background: none;
   box-shadow: none;
 }
 
 html[data-theme="meridianobet"] .topbar .topbar__audio .icon-btn:hover {
-  color: var(--brand-red);
-  background: var(--brand-red-tint);
+  color: var(--brand-blue-deep);
+  background: rgba(90, 114, 244, 0.16);
 }
 
-/* Silenciado: el icono se apaga y el boton se queda en gris claro dentro de la
+/* Silenciado: el icono se apaga y el boton baja a un velo blanco dentro de la
    capsula; el estado real lo lleva `aria-pressed`, no una clase aparte. */
 html[data-theme="meridianobet"] .topbar .topbar__audio .icon-btn[aria-pressed="false"] {
-  color: var(--brand-grey-400);
-  background: var(--brand-grey-50);
+  color: rgba(16, 26, 77, 0.42);
+  background: rgba(255, 255, 255, 0.55);
 }
 
 /* --------------------------------------------------------------------------

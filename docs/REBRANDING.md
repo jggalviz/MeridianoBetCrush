@@ -1,4 +1,4 @@
-# Rebranding a Meridianobet (rojo / blanco / gris)
+# Rebranding a Meridianobet Crush (rojo / oro / azul de consola)
 
 La interfaz esta partida en dos capas para poder cambiar la identidad visual
 **sin tocar la logica del juego** ni el pipeline de cache:
@@ -28,6 +28,14 @@ que distinguir dos grupos antes de tocar nada:
 | Carcasa movil (`.machine__table`, `.controls`) | `marco_movil.webp`, `consola_movil.webp` | No: reexportar arte |
 | Fondo de escenario y logotipo | `fondo_desktop` / `fondo_movil`, `PANA-CRUSH-LOGO.webp` | No: reexportar arte |
 | Simbolos del tablero | `public/src/assets/symbols/*.png` | No: reexportar arte |
+
+La barra superior y las 30 casillas se pintan con el **azul de la consola**:
+`theme.css` define `--brand-blue` / `--brand-blue-deep` (los mismos tonos que
+`--gbtn-blue-*` en `style.css`) y `--brand-blue-ink` para contornos y sombras. La
+barra es vidrio translucido (degradado con alfa + `backdrop-filter`) y las
+casillas son vidrio azul sobre el interior palido del tablero, asi el marco del
+arte —rojo, blanco y azul— queda integrado con la interfaz en vez de flotar
+sobre ella.
 
 Consecuencia practica: los tokens de caramelo de `style.css`
 (`--candy-solid-body`, `--candy-solid-wash`, `--candy-rim`, `--candy-depth`,
@@ -94,12 +102,16 @@ el propio origen.
 3. Cambia solo el `src` (y el `alt`) de:
 
 ```html
-<img class="machine__logo" src="/src/assets/PANA-CRUSH-LOGO.webp"
-     alt="PANA CRUSH" width="240" height="240" fetchpriority="high" />
+<img class="machine__logo" src="/src/assets/MERIDIANOBET-CRUSH-LOGO.webp"
+     alt="MeridianoBet Crush" width="480" height="240" fetchpriority="high" />
 ```
 
-   El tamano reservado (`width`/`height`) evita saltos de layout; mantenlo
-   igual o ajusta `.machine__logo` en `style.css`.
+   El tamano reservado (`width`/`height`) evita saltos de layout y declara la
+   proporcion real del arte, **2:1** (900 x 450, sin margen transparente). En
+   movil la caja del logo (`--logo-w` / `--logo-h` en `style.css`) usa esa misma
+   proporcion y la imagen la rellena entera; si se cambia el arte por otro de
+   distinta relacion hay que actualizar ambos sitios o el `object-fit: contain`
+   devolvera el aire dentro de la caja.
    La barra del navegador movil usa la meta `theme-color`, ya en rojo de marca:
    `<meta name="theme-color" content="#c8102e" />`.
 

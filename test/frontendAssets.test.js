@@ -774,46 +774,46 @@ test('la consola y el tablero comparten el mismo eje X en movil', () => {
     'La franja cae sobre sus placas y no sobre la ventana'
   );
 
-  const heroRule = css.match(/\.machine__side \.machine__hero\s*\{[^}]*--logo-h:[\s\S]*?\n  \}/);
+  const heroRule = css.match(/\.machine__side \.machine__hero\s*\{[^}]*--logo-w:[\s\S]*?\n  \}/);
   assert.ok(heroRule, 'La marca debe declarar su caja sobre el cielo del estadio');
   assert.match(
     heroRule[0],
-    /left:\s*calc\(\(100% - var\(--m-w\)\) \/ 2 \+ var\(--m-w\) \* 0\.006\);/,
-    'El logo se pega al lateral izquierdo del marco, sobre el cielo'
+    /left:\s*calc\(\(100% - var\(--m-w\)\) \/ 2 \+ var\(--m-w\) \* 0\.02\);/,
+    'El logo se desplaza a la derecha del filo del marco, sobre el cielo'
   );
   assert.match(
     heroRule[0],
-    /bottom:\s*calc\(var\(--frame-h\) \* 0\.7704\);/,
-    'La base del logo se apoya en el borde superior de la franja del HUD'
+    /bottom:\s*calc\(var\(--frame-h\) \* 0\.8013\);/,
+    'La base del logo se apoya sobre la franja de banderines, por encima del HUD'
   );
 
-  // 5) La chapa del logo: alto del 31 % del ancho del marco —de ancho le queda el
-  //    30 %, porque el PNG es más alto que ancho— y un tope por alto medido con
-  //    el hueco real. `--logo-sky` es lo que hay entre el filo superior de
-  //    `.machine` y el ancla del logo: la mitad del sobrante vertical de la
+  // 5) La chapa del logo: 58 % del ancho del marco y la caja con la proporcion
+  //    real del arte (2:1). `--logo-sky` es lo que hay entre el filo superior de
+  //    `.machine` y la base del logo: la mitad del sobrante vertical de la
   //    rejilla (alto del escenario menos marco, separacion y consola) mas el
-  //    22,96 % del marco que queda por encima de la base. De ahi se descuentan
-  //    16 px (10 del balanceo + 6 de colchon) y se divide por 1,046, que es lo
-  //    que trepa la esquina alta del PNG al girar -3° y crecer un 3 %. Sin ese
-  //    tope el 31 % se corta contra el filo en tablet vertical y en 320 px.
+  //    19,87 % del marco que queda por encima de la base. De ahi se descuentan
+  //    14 px (10 del balanceo + 4 de colchon), el resto se divide por 1,05 —lo
+  //    que trepa la esquina alta del PNG al girar -3° y crecer un 3 %— y se
+  //    duplica porque el ancho es el doble del alto. Sin ese tope el 58 % se
+  //    corta contra el filo en tablet vertical y en 320 px.
   assert.match(
     heroRule[0],
-    /--logo-sky:\s*calc\(\s*\(100cqh - \(var\(--frame-h\) \+ var\(--row-gap\) \+ var\(--m-w\) \* 0\.4961\)\) \/ 2\s*\+ var\(--frame-h\) \* 0\.2296\s*\);/,
+    /--logo-sky:\s*calc\(\s*\(100cqh - \(var\(--frame-h\) \+ var\(--row-gap\) \+ var\(--m-w\) \* 0\.4961\)\) \/ 2\s*\+ var\(--frame-h\) \* 0\.1987\s*\);/,
     'El aire del logo se mide con el hueco real, no con un porcentaje fijo'
   );
   assert.match(
     heroRule[0],
-    /--logo-h:\s*min\(\s*calc\(var\(--m-w\) \* 0\.31\),\s*max\(0px, \(var\(--logo-sky\) - 16px\) \/ 1\.046\)\s*\);/,
-    'El logo apunta a un alto del 31 % del marco y nunca rebasa el filo superior'
+    /--logo-w:\s*min\(\s*calc\(var\(--m-w\) \* 0\.58\),\s*max\(0px, \(var\(--logo-sky\) - 14px\) \* 2 \/ 1\.05\)\s*\);/,
+    'El logo apunta al 58 % del ancho del marco y nunca rebasa el filo superior'
   );
   assert.match(
     heroRule[0],
-    /--logo-w:\s*calc\(var\(--logo-h\) \* 0\.9686\);/,
-    'La caja del logo conserva la proporcion del PNG (493 x 509)'
+    /--logo-h:\s*calc\(var\(--logo-w\) \/ 2\);/,
+    'La caja del logo conserva la proporcion 2:1 del PNG (900 x 450)'
   );
   assert.doesNotMatch(heroRule[0], /var\(--m-w\) \* 0\.44\b/, 'El logo ya no se ata al 44 % anterior');
   assert.equal(
-    (css.match(/--logo-h:\s*min\(/g) || []).length,
+    (css.match(/--logo-w:\s*min\(/g) || []).length,
     1,
     'El tope del logo vive en una sola regla, comun a todo el rango movil'
   );

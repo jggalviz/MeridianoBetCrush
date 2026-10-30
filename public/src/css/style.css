@@ -4885,8 +4885,8 @@ body.is-demo .machine__side .controls .balance::after {
     /* Aire real que queda por encima del ancla del logo, en px: la mitad del
        sobrante vertical de la maquina (la rejilla esta centrada, asi que reparte
        a partes iguales entre arriba y abajo) mas lo que sube el propio marco
-       desde su base hasta el borde superior de la franja del HUD (22,96 % de su
-       alto, ver `bottom` mas abajo).
+       desde su base hasta la base del logo (19,87 % de su alto, ver `bottom`
+       mas abajo).
 
        La consola se descuenta con su relacion propia (1780 / 883 = 0,4961) y no
        con el 1,2813 de `--m-w`: ese token suma marco y consola pero deja fuera
@@ -4895,47 +4895,46 @@ body.is-demo .machine__side .controls .balance::after {
        `.machine` (la maquina lo llena y no tiene padding). */
     --logo-sky: calc(
       (100cqh - (var(--frame-h) + var(--row-gap) + var(--m-w) * 0.4961)) / 2
-      + var(--frame-h) * 0.2296
+      + var(--frame-h) * 0.1987
     );
-    /* Alto del logo: 30 % del ancho del marco (~103 px a 390 px). El arte nuevo
-       no trae el hueco transparente del arco de caramelos —el tercio superior
-       izquierdo es cielo con focos, banderines y monedas—, asi que la chapa se
-       reduce y se pega a esa esquina como una pegatina sobre el estadio: su
-       borde derecho cae en el 31 % y queda muy por debajo de la primera placa
-       del HUD (30,03 %), de modo que no tapa ni una cifra.
+    /* El arte nuevo es un lockup horizontal 2:1 (900 x 450, sin aire en el PNG),
+       asi que la caja toma su misma proporcion: el ancho manda y el alto es su
+       mitad. Antes la caja era casi cuadrada (proporcion del PNG vertical
+       anterior) y la imagen `contain` dejaba 31 px de cielo DENTRO de su propia
+       caja: eso era lo que hacia flotar el logo y dejaba el hueco bajo la barra.
+       Con la caja 2:1 la tinta llega al borde inferior y la pegatina se apoya de
+       verdad en el marco. Su borde derecho cae en el 60 % del marco, muy por
+       encima de la franja del HUD (22,96-31,90 % del alto), asi que no tapa ni
+       una cifra.
 
        El segundo termino es el tope por alto, y se aplica en TODO el rango
        movil: de `--logo-sky` se descuentan los 10 px que sube el fotograma 50 %
-       de `pana-logo-sticker` y 6 px de colchon (la rejilla redondea el alto de
-       la consola unos 2 px hacia abajo, y el modelo de arriba sobreestima el
-       aire ~1 px); el resto se divide por 1,046, que es lo que trepa la
-       esquina alta del PNG al girar -3° sobre el origen 50 % 70 % y crecer un
-       3 %. Asi el filo superior del logo nunca rebasa el borde de `.machine`
+       de `pana-logo-sticker` y 4 px de colchon; el resto se divide por 1,05,
+       que es lo que trepa la esquina alta del PNG al girar -3° sobre el origen
+       50 % 70 % y crecer un 3 %, y se duplica porque el ancho es el doble del
+       alto. Asi el filo superior del logo nunca rebasa el borde de `.machine`
        (que recorta con `overflow: hidden`) ni la barra superior, ni siquiera en
        el fotograma mas alto del balanceo.
 
-       En los telefonos altos el tope no llega a morder (a 390 x 844 sobran
-       ~170 px sobre el filo) y manda el 30 %; en los bajos (320 x 568) y en las
-       tablets verticales (576 x 800, 768 x 1024), donde la maquina se estrecha,
-       manda el tope y el logo se queda con el aire justo. */
-    --logo-h: min(
-      calc(var(--m-w) * 0.31),
-      max(0px, (var(--logo-sky) - 16px) / 1.046)
+       En los telefonos altos manda el 58 % del ancho; en los bajos (320 x 568) y
+       en las tablets verticales (576 x 800, 768 x 1024), donde la maquina se
+       estrecha, manda el tope y el logo se queda con el aire justo. */
+    --logo-w: min(
+      calc(var(--m-w) * 0.58),
+      max(0px, (var(--logo-sky) - 14px) * 2 / 1.05)
     );
-    /* Ancho de la caja del logo (misma proporción del PNG, 493 / 509). */
-    --logo-w: calc(var(--logo-h) * 0.9686);
+    --logo-h: calc(var(--logo-w) / 2);
     width: var(--logo-w);
     height: var(--logo-h);
-    /* Pegado al lateral izquierdo del marco: el 0,4 % es el aire que ocupa la
-       tinta del PNG en su borde izquierdo (empieza en 0,41 % de su caja), asi
-       que con el 0,6 % la chapa monta sobre el marco sin que la recorte nada y
-       deja ver el cielo y los focos por el resto del ancho. */
-    left: calc((100% - var(--m-w)) / 2 + var(--m-w) * 0.006);
-    /* Anclado por abajo: lo que crezca hacia arriba es lo que sobresale del
-       marco, y nunca invade el HUD. El 77,04 % deja la base del logo justo en
-       el borde superior de la franja de placas (22,96 % del alto), con el
-       balanceo desahogado porque la ventana del tablero arranca en 39,80 %. */
-    bottom: calc(var(--frame-h) * 0.7704);
+    /* Desplazado a la derecha y apoyado en el marco: el 2 % lo separa del filo
+       izquierdo (el PNG nuevo no trae aire, su tinta arranca en el borde de la
+       caja) y deja el resto del ancho para las banderas y la corona. */
+    left: calc((100% - var(--m-w)) / 2 + var(--m-w) * 0.02);
+    /* Anclado por abajo y 4 % mas bajo que el borde superior de las placas del
+       HUD (0,8013 = 1 - 0,1987): la base del logo se monta sobre la franja de
+       banderines y monedas decorativas del marco, que es donde tiene que
+       integrarse, y lo que crezca va hacia arriba. */
+    bottom: calc(var(--frame-h) * 0.8013);
     margin: 0;
     padding: 0;
     overflow: visible;
@@ -4948,14 +4947,15 @@ body.is-demo .machine__side .controls .balance::after {
 
   .machine__side .machine__hero::before { display: none; }
 
-  /* El logo manda sobre el cielo: 30 % del ancho del marco y el alto sale de la
-     proporción del PNG, 493 x 509. El sobrante superior es lo que lo saca del
-     marco; el balanceo de `pana-logo-sticker` (más inclinación y sombra de
-     contacto que la versión de escritorio) lo despega del estadio como una
-     pegatina en 3D. */
+  /* El logo manda sobre el cielo: 58 % del ancho del marco y el alto sale de la
+     proporción del PNG, 900 x 450. La caja ya es 2:1, así que la imagen la
+     rellena entera (`height: 100%`) sin el aire que dejaba `height: auto` dentro
+     de una caja casi cuadrada. El balanceo de `pana-logo-sticker` (más
+     inclinación y sombra de contacto que la versión de escritorio) lo despega
+     del estadio como una pegatina en 3D. */
   .machine__side .machine__logo {
     width: 100%;
-    height: auto;
+    height: 100%;
     max-width: none;
     max-height: none;
     margin: 0;
@@ -4967,22 +4967,24 @@ body.is-demo .machine__side .controls .balance::after {
 
   /* Balanceo de la pegatina: se mece sobre su esquina inferior, crece un 3 % y
      la sombra se abre al subir. El giro nunca pasa de 3° para que la esquina
-     inferior izquierda no baje hasta la primera fila del tablero. */
+     inferior izquierda no baje hasta la primera fila del tablero. Las sombras
+     van en azul tinta (y el halo en blanco), el mismo tono oscuro del vidrio de
+     la barra y del tablero. */
   @keyframes pana-logo-sticker {
     0%,
     100% {
       transform: translateY(-5px) rotate(-2.2deg) scale(1);
       filter:
-        drop-shadow(0 4px 5px rgba(52, 0, 44, 0.42))
-        drop-shadow(0 14px 18px rgba(62, 3, 68, 0.36))
+        drop-shadow(0 4px 5px rgba(16, 26, 77, 0.42))
+        drop-shadow(0 14px 18px rgba(16, 26, 77, 0.36))
         drop-shadow(0 0 16px rgba(255, 255, 255, 0.24));
     }
     50% {
       transform: translateY(-10px) rotate(-3deg) scale(1.03);
       filter:
         brightness(1.04)
-        drop-shadow(0 6px 7px rgba(52, 0, 44, 0.46))
-        drop-shadow(0 20px 26px rgba(62, 3, 68, 0.42))
+        drop-shadow(0 6px 7px rgba(16, 26, 77, 0.46))
+        drop-shadow(0 20px 26px rgba(16, 26, 77, 0.42))
         drop-shadow(0 0 26px rgba(255, 240, 170, 0.48));
     }
   }
