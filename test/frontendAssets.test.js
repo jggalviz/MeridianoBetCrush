@@ -65,6 +65,33 @@ test('los 11 simbolos del motor apuntan a imagenes existentes', () => {
   }
 });
 
+test('los simbolos del tablero giran con caramelos, no con arte deportivo', () => {
+  // El marco (`d1`/`d2`) y los fondos del rebranding si son deportivos: balones,
+  // monedas y banderines. La cuadricula, en cambio, se queda con los caramelos
+  // limpios de `public/src/assets/symbols`. Este candado evita que un retoque
+  // futuro vuelva a mezclar iconografia deportiva en las casillas.
+  const source = read(FORMAT_PATH);
+  const start = source.indexOf('export const SYMBOLS');
+  const end = source.indexOf('export const SYMBOL_KEYS');
+  assert.ok(start >= 0 && end > start, 'format.js debe declarar el mapa SYMBOLS');
+
+  const block = source.slice(start, end);
+  assert.doesNotMatch(
+    block,
+    /sport|deport|balon|pelota|football|soccer|basket|baseball|beisbol|tennis|guante|trofeo|casco|medalla/i,
+    'Los simbolos del tablero no deben apuntar a assets deportivos'
+  );
+  assert.doesNotMatch(
+    block,
+    /\/src\/assets\/(?!symbols\/)/,
+    'Los simbolos solo se sirven desde /src/assets/symbols/'
+  );
+
+  const files = [...block.matchAll(/image:\s*`\$\{SYMBOL_IMAGE_PATH\}([^`]+)`/g)].map((match) => match[1]);
+  assert.equal(files.length, 11, 'El mapa debe cubrir S1-S9, SC y MX');
+  assert.equal(new Set(files).size, 11, 'Cada simbolo debe tener su propio caramelo');
+});
+
 test('el logotipo de MeridianoBet se sirve ligero y con su proporcion 2:1', () => {
   const html = read(INDEX_PATH);
 
@@ -1064,19 +1091,22 @@ test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros q
 
   const logoBodies = bodies('\\.machine__side \\.machine__logo');
   assert.ok(logoBodies.length, 'El logo debe declarar su caja sobre la nube');
-  for (const declaration of ['left: 50%;', 'top: 21.6%;', 'width: 36%;', 'aspect-ratio: 2 / 1;']) {
+  // 43,2 % es el 120 % del 36 % historico: la caja mide 283 x 141,5 px sobre el
+  // lienzo de 655 x 928 y el arte (279 x 139,3 px) deja ~20 px de azul arriba y
+  // abajo, asi que el pico de la animacion no toca el borde dorado de la nube.
+  for (const declaration of ['left: 50%;', 'top: 21.6%;', 'width: 43.2%;', 'aspect-ratio: 2 / 1;']) {
     assert.ok(
       logoBodies.some((body) => body.includes(declaration)),
       `El logo se apoya en el hueco de d2 con \`${declaration}\``
     );
   }
   assert.ok(
-    logoBodies.some((body) => body.includes('top: 21.6%;') && body.includes('width: 36%;')),
-    'El logo ocupa el hueco de la nube de d2'
+    logoBodies.some((body) => body.includes('top: 21.6%;') && body.includes('width: 43.2%;')),
+    'El logo ocupa el hueco de la nube de d2 al 120 % del tamano anterior'
   );
   assert.ok(
-    logoBodies.some((body) => body.includes('width: 33%;') && body.includes('top: 21.8%;')),
-    'En ventanas bajas el logo mantiene el centro con un 33 % de ancho'
+    logoBodies.some((body) => body.includes('width: 39.6%;') && body.includes('top: 21.8%;')),
+    'En ventanas bajas el logo mantiene el centro con un 39,6 % de ancho (120 % de 33 %)'
   );
   // El case de escritorio responde como un pulsador de arcade: se hunde un 5 %
   // (y con el, su trozo de dibujo) y suelta un destello especular al pasar el

@@ -6441,19 +6441,22 @@ body.is-demo .machine__side .controls .balance::after {
 
   /* La pegatina del logo, centrada en el hueco azul de la nube. El dibujo la
      abre entre x 20 y 80,15 % y entre y 12,07 y 31,14 % (bbox del borde dorado,
-     medido con segmentacion de color sobre d2.webp), asi que su interior liso va
-     de x 21,5 a 78,5 % y de y 13,5 a 29,7 %: un rectangulo centrado en 50 % /
-     21,6 %. El lockup de MeridianoBet es 2:1 (900 x 450, el arte ocupa el 96,6 %
-     del lienzo y esta centrado), asi que con 36 % de ancho mide 12,7 % de alto y
-     queda con ~10 % de azul a los lados y ~1,8 % arriba y abajo: el aire que
-     necesita la animacion (sube 7 px y escala un 3 %) para no tocar el borde
-     dorado. */
+     medido con segmentacion de color sobre d2.webp); su interior azul liso mide
+     397 x 179 px (x 19,85-80,46 % · y 11,96-31,25 %) y el centro cae en 50 % /
+     21,6 %, que es donde se ancla la caja. El lockup de MeridianoBet es 2:1
+     (900 x 450; el arte ocupa 884 x 443 px, el 98,2 % del lienzo, centrado),
+     asi que con 43,2 % de ancho la caja mide 283 x 141,5 px y el arte
+     278 x 139,3 px: sobran ~59 px de azul a los lados y ~20 px arriba y abajo, el
+     aire que necesita la animacion (sube 7 px y escala un 3 %, 9,5 px en el pico)
+     para no tocar el borde dorado. 43,2 % es el 120 % del 36 % anterior: mismo
+     encuadre y centrado, un 20 % mas de marca sin desbordar la nube ni acercarse
+     al tablero. */
   .machine__side .machine__logo {
     position: absolute;
     left: 50%;
     top: 21.6%;
     z-index: 6;
-    width: 36%;
+    width: 43.2%;
     height: auto;
     aspect-ratio: 2 / 1;
     max-width: none;
@@ -7173,12 +7176,13 @@ body.is-demo .machine__side .controls .balance::after {
 
 /* --------------------------------------------------------------------------
    Escritorio bajo (≤660 px de alto): el lienzo de d2 se queda en ~340 px de
-   ancho, asi que la pegatina del logo se reduce un pelo para no rozar el borde
-   dorado de la nube. El resto del arte escala solo.
+   ancho, asi que la pegatina del logo baja al 39,6 % (el 120 % del 33 %
+   anterior) y se recentra en 21,8 % para no rozar el borde dorado de la nube.
+   El resto del arte escala solo.
    -------------------------------------------------------------------------- */
 @media (min-width: 900px) and (max-height: 660px) {
   .machine__side .machine__hero { display: block; }
-  .machine__side .machine__logo { width: 33%; top: 21.8%; }
+  .machine__side .machine__logo { width: 39.6%; top: 21.8%; }
 }
 
 /* Ventanas de menos de 470 px de alto: la placa del hero mide ~50 px y el

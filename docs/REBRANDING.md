@@ -137,6 +137,15 @@ el propio origen.
    La barra del navegador movil usa la meta `theme-color`, ya en rojo de marca:
    `<meta name="theme-color" content="#c8102e" />`.
 
+   En escritorio (`min-width: 900px`) el logo no va en una tarjeta: se pega en el
+   hueco azul de la nube que dibuja `d2.webp`, centrado en el 50 % / 21,6 % de ese
+   lienzo. La caja mide el **43,2 % del ancho** del lienzo (283 x 141,5 px sobre
+   655 x 928), que es el 120 % del 36 % anterior: el interior azul liso de la nube
+   mide 397 x 179 px, asi que quedan ~20 px de aire arriba y abajo y la animacion
+   (`pana-logo-breathe`, sube 7 px y escala un 3 %) no toca el borde dorado. En
+   ventanas bajas (`max-height: 660px`) el lienzo se queda en ~340 px de ancho y el
+   logo baja al 39,6 % (120 % del 33 % anterior) con el centro en 21,8 %.
+
 Pendiente de arte (ver la tabla de alcance): las carcasas moviles
 (`marco_movil.webp`, `consola_movil.webp`) y los simbolos del tablero. El arte de
 escritorio ya es el del tema: el marco (`d1.webp`) y la columna lateral entera
@@ -148,6 +157,13 @@ Los simbolos del tablero (20 PNG en `public/src/assets/symbols/`) se mapean en
 `ui/lib/format.js` (`SYMBOL_IMAGE_PATH`). Si se sustituyen por iconografia de
 marca, hay que conservar los nombres `candy_*.png` o actualizar ese mapeo;
 `test/frontendAssets.test.js` valida que las 11 imagenes existan.
+
+Ese set **no es deportivo y no debe serlo**: la tematica de balones, monedas y
+banderines vive solo en el marco (`d1`/`d2`) y en los fondos. Las casillas que
+giran son caramelos, gominolas, galletas y piruletas, y un test
+(`los simbolos del tablero giran con caramelos, no con arte deportivo`) falla si
+el mapa apunta a otra carpeta o a un asset con nombre deportivo. `ui/` es la
+fuente: `npm run build:ui` materializa el espejo byte a byte de `public/ui/`.
 
 ## Textos y componentes
 
