@@ -1046,7 +1046,7 @@ curl -sSI "$BASE/src/css/style.css" | tr -d '\r' | grep -Ei 'HTTP/|content-type|
 # 3) Assets: 200, MIME correcto e inmutable
 curl -sSI "$BASE/src/assets/PANA-CRUSH-LOGO.webp" | tr -d '\r' | grep -Ei 'HTTP/|content-type|cache-control'
 curl -sSI "$BASE/src/assets/fonts/fredoka-latin.woff2" | tr -d '\r' | grep -Ei 'HTTP/|content-type|cache-control'
-curl -sSI "$BASE/src/assets/symbols/candy_2.png" | tr -d '\r' | grep -Ei 'HTTP/|content-type|cache-control'
+curl -sSI "$BASE/src/assets/slot/s1.png" | tr -d '\r' | grep -Ei 'HTTP/|content-type|cache-control'
 ```
 
 **PowerShell:**
@@ -1068,6 +1068,7 @@ Resultados esperados:
 | `/src/css/style.css` | 200 | `text/css; charset=utf-8` | `public, max-age=0, must-revalidate` |
 | `/src/assets/*.webp` | 200 | `image/webp` | `public, max-age=31536000, immutable` |
 | `/src/assets/**/*.woff2` | 200 | `font/woff2` | `public, max-age=31536000, immutable` |
+| `/src/assets/slot/*.png` | 200 | `image/png` | `public, max-age=31536000, immutable` |
 | `/src/assets/symbols/*.png` | 200 | `image/png` | `public, max-age=31536000, immutable` |
 | `/api/health` | 200 | `application/json; charset=utf-8` | sin caché (CachingDisabled) |
 

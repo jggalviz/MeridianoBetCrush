@@ -3,9 +3,10 @@
 /**
  * Contrato de assets del frontend.
  *
- * Los 20 caramelos viven en `public/src/assets/symbols`; el motor usa 11
- * simbolos y `format.js` es la unica fuente de verdad de su imagen. Esta
- * prueba evita que un renombrado o una ruta rota llegue a produccion.
+ * Los diez balones de las casillas viven en `public/src/assets/slot`; el motor
+ * usa 11 simbolos (nueve regulares, el scatter y la bomba) y `format.js` es la
+ * unica fuente de verdad de su imagen. Esta prueba evita que un renombrado o
+ * una ruta rota llegue a produccion.
  */
 
 const test = require('node:test');
@@ -16,6 +17,7 @@ const path = require('node:path');
 const ROOT_DIR = path.join(__dirname, '..');
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
 const SYMBOLS_DIR = path.join(PUBLIC_DIR, 'src', 'assets', 'symbols');
+const SLOT_DIR = path.join(PUBLIC_DIR, 'src', 'assets', 'slot');
 const FORMAT_PATH = path.join(PUBLIC_DIR, 'ui', 'lib', 'format.js');
 const STYLE_PATH = path.join(PUBLIC_DIR, 'src', 'css', 'style.css');
 const INDEX_PATH = path.join(PUBLIC_DIR, 'index.html');
@@ -44,9 +46,9 @@ const webpChunks = (buffer) => {
   return chunks;
 };
 
-test('los 20 caramelos estan en la carpeta limpia de simbolos', () => {
-  for (let index = 1; index <= 20; index += 1) {
-    const file = path.join(SYMBOLS_DIR, `candy_${index}.png`);
+test('los diez balones de las casillas viven en public/src/assets/slot', () => {
+  for (let index = 1; index <= 10; index += 1) {
+    const file = path.join(SLOT_DIR, `s${index}.png`);
     assert.ok(fs.existsSync(file), `Falta ${path.relative(ROOT_DIR, file)}`);
     assert.ok(fs.statSync(file).size > 0, `${path.basename(file)} esta vacio`);
   }
@@ -54,42 +56,58 @@ test('los 20 caramelos estan en la carpeta limpia de simbolos', () => {
 
 test('los 11 simbolos del motor apuntan a imagenes existentes', () => {
   const source = read(FORMAT_PATH);
-  const matches = [...source.matchAll(/image:\s*`\$\{SYMBOL_IMAGE_PATH\}([^`]+)`/g)];
+  const slotMatches = [...source.matchAll(/image:\s*`\$\{SYMBOL_IMAGE_PATH\}([^`]+)`/g)];
 
-  assert.equal(matches.length, 11, 'format.js debe mapear S1-S9, SC y MX');
+  assert.equal(slotMatches.length, 10, 'format.js debe mapear S1-S9 y SC sobre los balones');
+  assert.equal(
+    (source.match(/image:\s*BOMB_IMAGE_PATH/g) || []).length,
+    1,
+    'La bomba del multiplicador conserva su propio asset'
+  );
 
-  for (const [, fileName] of matches) {
-    const file = path.join(SYMBOLS_DIR, fileName);
+  for (const [, fileName] of slotMatches) {
+    const file = path.join(SLOT_DIR, fileName);
     assert.ok(fs.existsSync(file), `Simbolo sin asset: ${path.relative(ROOT_DIR, file)}`);
-    assert.match(fileName, /^candy_\d+\.png$/, `Nombre de asset inesperado: ${fileName}`);
+    assert.match(fileName, /^s\d+\.png$/, `Nombre de asset inesperado: ${fileName}`);
   }
+
+  const bombFile = path.join(SYMBOLS_DIR, 'candy_4.png');
+  assert.ok(fs.existsSync(bombFile), `Falta ${path.relative(ROOT_DIR, bombFile)}`);
 });
 
-test('los simbolos del tablero giran con caramelos, no con arte deportivo', () => {
-  // El marco (`d1`/`d2`) y los fondos del rebranding si son deportivos: balones,
-  // monedas y banderines. La cuadricula, en cambio, se queda con los caramelos
-  // limpios de `public/src/assets/symbols`. Este candado evita que un retoque
-  // futuro vuelva a mezclar iconografia deportiva en las casillas.
+test('los simbolos del tablero giran con los balones de la carpeta slot', () => {
+  // La cuadricula dejo de usar los caramelos: los nueve regulares y el scatter
+  // son los balones deportivos de `public/src/assets/slot` y el numero del
+  // archivo sigue el tramo de la tabla de pagos (s1 = S1 ... s9 = S9; s10 es el
+  // monograma que cae como scatter). La unica pieza de caramelo que sobrevive
+  // es la bomba del multiplicador, que se pinta con su valor encima.
   const source = read(FORMAT_PATH);
   const start = source.indexOf('export const SYMBOLS');
   const end = source.indexOf('export const SYMBOL_KEYS');
   assert.ok(start >= 0 && end > start, 'format.js debe declarar el mapa SYMBOLS');
 
-  const block = source.slice(start, end);
-  assert.doesNotMatch(
-    block,
-    /sport|deport|balon|pelota|football|soccer|basket|baseball|beisbol|tennis|guante|trofeo|casco|medalla/i,
-    'Los simbolos del tablero no deben apuntar a assets deportivos'
-  );
-  assert.doesNotMatch(
-    block,
-    /\/src\/assets\/(?!symbols\/)/,
-    'Los simbolos solo se sirven desde /src/assets/symbols/'
+  assert.match(
+    source,
+    /const SYMBOL_IMAGE_PATH = '\/src\/assets\/slot\/';/,
+    'Los balones se sirven desde /src/assets/slot/'
   );
 
-  const files = [...block.matchAll(/image:\s*`\$\{SYMBOL_IMAGE_PATH\}([^`]+)`/g)].map((match) => match[1]);
-  assert.equal(files.length, 11, 'El mapa debe cubrir S1-S9, SC y MX');
-  assert.equal(new Set(files).size, 11, 'Cada simbolo debe tener su propio caramelo');
+  const block = source.slice(start, end);
+  assert.equal(
+    (block.match(/^ {2}[A-Z][A-Z0-9]:/gm) || []).length,
+    11,
+    'El mapa debe cubrir S1-S9, SC y MX'
+  );
+
+  const ladder = [...block.matchAll(/^ {2}(S[1-9]): { glyph: '[^']*', name: '[^']*', image: `\$\{SYMBOL_IMAGE_PATH\}(s\d+)\.png`/gm)];
+  assert.equal(ladder.length, 9, 'Los nueve regulares deben venir de la carpeta slot');
+  ladder.forEach(([, symbol, file], index) => {
+    assert.equal(file, `s${index + 1}`, `${symbol} debe usar s${index + 1}.png`);
+  });
+
+  assert.match(block, /SC: [^\n]*s10\.png/, 'El scatter es el monograma s10.png');
+  assert.match(block, /MX: [^\n]*BOMB_IMAGE_PATH/, 'La bomba mantiene su caramelo');
+  assert.doesNotMatch(block, /candy_/, 'Ninguna casilla del mapa vuelve a los caramelos');
 });
 
 test('el logotipo de MeridianoBet se sirve ligero y con su proporcion 2:1', () => {
@@ -1091,22 +1109,34 @@ test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros q
 
   const logoBodies = bodies('\\.machine__side \\.machine__logo');
   assert.ok(logoBodies.length, 'El logo debe declarar su caja sobre la nube');
-  // 43,2 % es el 120 % del 36 % historico: la caja mide 283 x 141,5 px sobre el
-  // lienzo de 655 x 928 y el arte (279 x 139,3 px) deja ~20 px de azul arriba y
-  // abajo, asi que el pico de la animacion no toca el borde dorado de la nube.
-  for (const declaration of ['left: 50%;', 'top: 21.6%;', 'width: 43.2%;', 'aspect-ratio: 2 / 1;']) {
+  // 50 % es el techo del hueco azul de d2: la caja mide 327,5 x 163,75 px sobre
+  // el lienzo de 655 x 928 y el arte (321,6 x 160,8 px) deja ~7,6 px de azul
+  // arriba y abajo. Por encima del 52 % el arte pisa el borde dorado.
+  for (const declaration of ['left: 50%;', 'top: 21.6%;', 'width: 50%;', 'aspect-ratio: 2 / 1;']) {
     assert.ok(
       logoBodies.some((body) => body.includes(declaration)),
       `El logo se apoya en el hueco de d2 con \`${declaration}\``
     );
   }
   assert.ok(
-    logoBodies.some((body) => body.includes('top: 21.6%;') && body.includes('width: 43.2%;')),
-    'El logo ocupa el hueco de la nube de d2 al 120 % del tamano anterior'
+    logoBodies.some((body) => body.includes('top: 21.6%;') && body.includes('width: 50%;')),
+    'El logo ocupa el hueco de la nube de d2 al 139 % del tamano original'
   );
   assert.ok(
-    logoBodies.some((body) => body.includes('width: 39.6%;') && body.includes('top: 21.8%;')),
-    'En ventanas bajas el logo mantiene el centro con un 39,6 % de ancho (120 % de 33 %)'
+    logoBodies.some((body) => body.includes('width: 45.8%;') && body.includes('top: 21.8%;')),
+    'En ventanas bajas el logo mantiene el centro con un 45,8 % de ancho (mismo encuadre)'
+  );
+  // La respiracion del escritorio va acotada en su propio juego de keyframes
+  // (-4 px y 2 %): con los -7 px y el 3 % de la animacion movil el pico del
+  // arte subiria ~1,9 px por encima del filo dorado del hueco.
+  assert.ok(
+    logoBodies.some((body) => body.includes('animation: pana-logo-breathe-side')),
+    'La chapa de escritorio usa su respiracion acotada'
+  );
+  assert.match(
+    css,
+    /@keyframes pana-logo-breathe-side \{\s*0%,\s*100% \{ transform: translateY\(0\) scale\(1\); \}\s*50% \{ transform: translateY\(-4px\) scale\(1\.02\); \}\s*\}/,
+    'El vaiven de escritorio se queda en -4 px y un 2 % para no rozar el borde'
   );
   // El case de escritorio responde como un pulsador de arcade: se hunde un 5 %
   // (y con el, su trozo de dibujo) y suelta un destello especular al pasar el

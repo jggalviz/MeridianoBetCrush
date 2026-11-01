@@ -27,7 +27,7 @@ que distinguir dos grupos antes de tocar nada:
 | Marco del tablero (escritorio) | `d1.webp` | No: reexportar arte |
 | Carcasa movil (`.machine__table`, `.controls`) | `marco_movil.webp`, `consola_movil.webp` | No: reexportar arte |
 | Fondo de escenario y logotipo | `fondo_desktop` / `fondo_movil`, `PANA-CRUSH-LOGO.webp` | No: reexportar arte |
-| Simbolos del tablero | `public/src/assets/symbols/*.png` | No: reexportar arte |
+| Simbolos del tablero | `public/src/assets/slot/*.png` (y `symbols/candy_4.png` para la bomba) | No: reexportar arte |
 
 La barra superior y las 30 casillas se pintan con el **azul de la consola**:
 `theme.css` define `--brand-blue` / `--brand-blue-deep` (los mismos tonos que
@@ -153,17 +153,26 @@ escritorio ya es el del tema: el marco (`d1.webp`) y la columna lateral entera
 Mientras el movil siga con el arte original, esa vista se lee como "interfaz de
 marca dentro del marco candy".
 
-Los simbolos del tablero (20 PNG en `public/src/assets/symbols/`) se mapean en
-`ui/lib/format.js` (`SYMBOL_IMAGE_PATH`). Si se sustituyen por iconografia de
-marca, hay que conservar los nombres `candy_*.png` o actualizar ese mapeo;
-`test/frontendAssets.test.js` valida que las 11 imagenes existan.
+Los simbolos del tablero (diez PNG en `public/src/assets/slot/`) se mapean en
+`ui/lib/format.js` (`SYMBOL_IMAGE_PATH`). `s1.png` .. `s9.png` son los nueve
+regulares, en el mismo orden que los tramos de la tabla de pagos (s1 = S1, el
+mas comun, ... s9 = S9, el mas raro), y `s10.png` es el monograma de la marca,
+que cae como scatter. Si se sustituyen por otra iconografia, hay que conservar
+los nombres `s*.png` o actualizar ese mapeo; `test/frontendAssets.test.js`
+valida que las 10 imagenes y la bomba del multiplicador existan.
 
-Ese set **no es deportivo y no debe serlo**: la tematica de balones, monedas y
-banderines vive solo en el marco (`d1`/`d2`) y en los fondos. Las casillas que
-giran son caramelos, gominolas, galletas y piruletas, y un test
-(`los simbolos del tablero giran con caramelos, no con arte deportivo`) falla si
-el mapa apunta a otra carpeta o a un asset con nombre deportivo. `ui/` es la
-fuente: `npm run build:ui` materializa el espejo byte a byte de `public/ui/`.
+La bomba (MX) es la excepcion: mantiene su caramelo explosivo de
+`public/src/assets/symbols/candy_4.png`, porque no es una casilla de pago sino
+el multiplicador que se pinta con su valor encima (2x .. 250x). El resto de
+`symbols/` queda como archivo historico del arte candy.
+
+Ese set **si es deportivo**, igual que el marco (`d1`/`d2`) y los fondos:
+balones de beisbol, futbol, tenis, futbol americano, basquet, golf, voley, la
+bola 8, la bola de bolos y el monograma. Un test
+(`los simbolos del tablero giran con los balones de la carpeta slot`) falla si
+el mapa vuelve a los caramelos, si cambia el orden s1..s9 o si apunta a otra
+carpeta. `ui/` es la fuente: `npm run build:ui` materializa el espejo byte a
+byte de `public/ui/`.
 
 ## Textos y componentes
 

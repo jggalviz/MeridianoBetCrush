@@ -6,24 +6,31 @@
 import { GRID } from '../config/gameConfig.js';
 
 /*
- * Mapa visual de los 11 simbolos del motor sobre los assets de PANA CRUSH.
+ * Mapa visual de los 11 simbolos del motor sobre los assets de MERIDIANOBET
+ * CRUSH. Los nueve regulares (S1-S9) y el scatter (SC) son los balones
+ * deportivos de `public/src/assets/slot/`: `s1.png` .. `s9.png` van del pago
+ * mas bajo al mas alto (el numero del archivo coincide con el tramo de la
+ * tabla de pagos) y `s10.png` es el monograma de la marca, que cae como
+ * scatter. La bomba (MX) conserva su caramelo explosivo: es el multiplicador
+ * que se pinta con el valor encima (2x .. 250x), no una casilla mas.
  * `image` es la fuente principal de la casilla; `glyph` queda como fallback
  * accesible si la imagen no llega a cargar.
  */
-const SYMBOL_IMAGE_PATH = '/src/assets/symbols/';
+const SYMBOL_IMAGE_PATH = '/src/assets/slot/';
+const BOMB_IMAGE_PATH = '/src/assets/symbols/candy_4.png';
 
 export const SYMBOLS = Object.freeze({
-  S1: { glyph: '🍬', name: 'Menta arcoíris', image: `${SYMBOL_IMAGE_PATH}candy_2.png` },
-  S2: { glyph: '🍊', name: 'Gominola de naranja', image: `${SYMBOL_IMAGE_PATH}candy_6.png` },
-  S3: { glyph: '🍋', name: 'Caramelo de limón', image: `${SYMBOL_IMAGE_PATH}candy_3.png` },
-  S4: { glyph: '🍏', name: 'Gominola de manzana', image: `${SYMBOL_IMAGE_PATH}candy_8.png` },
-  S5: { glyph: '🍇', name: 'Caramelo de uva', image: `${SYMBOL_IMAGE_PATH}candy_19.png` },
-  S6: { glyph: '🐻', name: 'Osito de fresa', image: `${SYMBOL_IMAGE_PATH}candy_5.png` },
-  S7: { glyph: '🥥', name: 'Coco de chocolate', image: `${SYMBOL_IMAGE_PATH}candy_11.png` },
-  S8: { glyph: '🍓', name: 'Fresa glaseada', image: `${SYMBOL_IMAGE_PATH}candy_13.png` },
-  S9: { glyph: '🍪', name: 'Galleta de caramelos', image: `${SYMBOL_IMAGE_PATH}candy_15.png` },
-  SC: { glyph: '🍭', name: 'Lollipop (scatter)', image: `${SYMBOL_IMAGE_PATH}candy_20.png` },
-  MX: { glyph: '💥', name: 'Caramelo bomba', image: `${SYMBOL_IMAGE_PATH}candy_4.png` }
+  S1: { glyph: '⚾', name: 'Béisbol', image: `${SYMBOL_IMAGE_PATH}s1.png` },
+  S2: { glyph: '⚽', name: 'Balón de fútbol', image: `${SYMBOL_IMAGE_PATH}s2.png` },
+  S3: { glyph: '🎾', name: 'Pelota de tenis', image: `${SYMBOL_IMAGE_PATH}s3.png` },
+  S4: { glyph: '🏈', name: 'Balón de fútbol americano', image: `${SYMBOL_IMAGE_PATH}s4.png` },
+  S5: { glyph: '🏀', name: 'Balón de básquet', image: `${SYMBOL_IMAGE_PATH}s5.png` },
+  S6: { glyph: '⛳', name: 'Pelota de golf', image: `${SYMBOL_IMAGE_PATH}s6.png` },
+  S7: { glyph: '🏐', name: 'Balón de vóley', image: `${SYMBOL_IMAGE_PATH}s7.png` },
+  S8: { glyph: '🎱', name: 'Bola 8', image: `${SYMBOL_IMAGE_PATH}s8.png` },
+  S9: { glyph: '🎳', name: 'Bola de bolos', image: `${SYMBOL_IMAGE_PATH}s9.png` },
+  SC: { glyph: '✨', name: 'Monograma MeridianoBet (scatter)', image: `${SYMBOL_IMAGE_PATH}s10.png` },
+  MX: { glyph: '💥', name: 'Bomba multiplicadora', image: BOMB_IMAGE_PATH }
 });
 
 export const SYMBOL_KEYS = Object.freeze(['S9', 'S8', 'S7', 'S6', 'S5', 'S4', 'S3', 'S2', 'S1']);
