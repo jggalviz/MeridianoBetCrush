@@ -145,7 +145,7 @@ function buildGameInfo(model) {
       min: multiplierMin,
       max: multiplierMax,
       distribution: multiplierDistribution,
-      rule: 'La suma de las bombas de la cuadricula final multiplica el total ganado.'
+      rule: 'La suma de los logos multiplicadores de la cuadricula final multiplica el total ganado.'
     },
     feature: {
       id: model.feature.id,
@@ -157,9 +157,9 @@ function buildGameInfo(model) {
       `Cuadricula fija de ${GRID_COLS}x${GRID_ROWS} con pagos por dispersion de ${MIN_CLUSTER_SIZE} o mas simbolos iguales.`,
       'Los simbolos se cuentan en cualquier posicion de la cuadricula; no hace falta que esten conectados ni adyacentes.',
       'Todas las celdas de cada simbolo ganador se eliminan y provocan cascadas hasta que no queden premios.',
-      'El SCATTER y las bombas MX no se eliminan durante las cascadas; las bombas aplican su suma al final.',
+      'El SCATTER y el logo multiplicador (MX) no se eliminan durante las cascadas; el logo aplica su suma al final.',
       `El SCATTER paga solo en la tirada inicial: 3/4/5/6+ = ${model.scatterPaysUnits[3]}x/${model.scatterPaysUnits[4]}x/${model.scatterPaysUnits[5]}x/${model.scatterPaysUnits[6]}x.`,
-      `Cada bomba vale entre ${multiplierMin}x y ${multiplierMax}x; al final de la ronda se suman y multiplican el premio.`,
+      `Cada logo multiplicador vale entre ${multiplierMin}x y ${multiplierMax}x; al final de la ronda se suman y multiplican el premio.`,
       `La ganancia maxima por ronda esta limitada a ${model.maxExposureMultiplier.toLocaleString('es-ES')}x la apuesta base.`
     ]
   });

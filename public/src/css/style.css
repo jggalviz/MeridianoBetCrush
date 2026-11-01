@@ -526,22 +526,11 @@ button:disabled { cursor: not-allowed; }
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.09));
 }
 
-.tile[data-sym="S9"] {
-  background: linear-gradient(180deg, rgba(255, 251, 191, 0.52), rgba(255, 211, 109, 0.18));
-  border-color: rgba(255, 246, 178, 0.78);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62), 0 0 18px rgba(255, 225, 102, 0.34);
-}
-
-.tile[data-sym="SC"] {
-  background: radial-gradient(circle at 50% 30%, rgba(255, 255, 221, 0.88), rgba(110, 200, 255, 0.42) 68%);
-  border-color: rgba(255, 248, 177, 0.92);
-  box-shadow: 0 0 22px rgba(255, 229, 112, 0.66), 0 0 30px rgba(96, 190, 255, 0.4);
-}
-
+.tile[data-sym="SC"],
 .tile[data-sym="MX"] {
-  background: radial-gradient(circle at 50% 35%, rgba(255, 240, 186, 0.9), rgba(255, 150, 70, 0.38) 70%);
-  border-color: rgba(255, 155, 117, 0.92);
-  box-shadow: 0 0 22px rgba(255, 150, 70, 0.5);
+  background: radial-gradient(circle at 50% 34%, rgba(255, 253, 242, 0.94), rgba(255, 239, 188, 0.7) 54%, rgba(255, 194, 26, 0.42) 100%);
+  border-color: rgba(255, 194, 26, 0.92);
+  box-shadow: 0 0 22px rgba(255, 194, 26, 0.62), 0 0 30px rgba(200, 16, 46, 0.26);
 }
 
 .tile__bomb-value {
@@ -1482,6 +1471,8 @@ body::after {
 .tile__img[hidden],
 .tile__glyph[hidden] { display: none !important; }
 
+/* Todas las pelotas comparten el mismo bloque de vidrio: el color no delata el
+   tramo de pago, la rareza la marca el propio balón. */
 .tile[data-sym^="S"] {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.08));
   box-shadow:
@@ -1489,32 +1480,60 @@ body::after {
     0 6px 14px rgba(93, 11, 91, 0.14);
 }
 
-.tile[data-sym="S9"] {
-  background: linear-gradient(180deg, rgba(255, 251, 191, 0.5), rgba(255, 211, 109, 0.18));
-  border-color: rgba(255, 246, 178, 0.75);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.62),
-    0 0 18px rgba(255, 225, 102, 0.36);
-}
-
-/* Las casillas especiales dejan atras el rosa chicle de la etapa candy: el
-   scatter se enciende en el azul de la marca y la bomba en naranja de fuego,
-   los mismos tonos del HUD y del boton de girar. */
-.tile[data-sym="SC"] {
-  border-color: rgba(255, 248, 177, 0.95);
-  background: radial-gradient(circle at 50% 40%, rgba(255, 255, 221, 0.86), rgba(110, 200, 255, 0.42) 62%, rgba(255, 255, 255, 0.08));
+/* El bloque del logo es el único distinto del tablero: oro de marca, el mismo
+   tono del premio. Lo comparten el scatter y el multiplicador, porque los dos
+   son el logotipo de MeridianoBet. */
+.tile[data-sym="SC"],
+.tile[data-sym="MX"] {
+  border-color: rgba(255, 194, 26, 0.95);
+  background: radial-gradient(circle at 50% 36%, rgba(255, 253, 242, 0.96), rgba(255, 239, 188, 0.78) 52%, rgba(255, 194, 26, 0.44) 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 0 24px rgba(255, 229, 112, 0.76),
-    0 0 44px rgba(96, 190, 255, 0.42);
+    0 0 24px rgba(255, 194, 26, 0.62),
+    0 0 44px rgba(200, 16, 46, 0.24);
 }
 
+/* El logo llena su bloque de borde a borde, y para eso hay que recortarle el aire
+   al PNG. `s10.png` es un lienzo de 335 x 341 px con la tinta de 335 x 171 px:
+   el dibujo va pegado a los lados pero deja 85 px transparentes arriba y abajo
+   (24,93 % por cada lado). Con `contain` a secas, el lienzo casi cuadrado manda:
+   en una casilla apaisada —el movil mide 52 x 29 px— escala por el alto y el logo
+   se queda en el 60 % del ancho, perdido entre las pelotas. `object-view-box`
+   recorta ese aire antes de escalar, asi que el arte efectivo pasa a ser 335 x 171
+   (2:1) y `contain` lo ajusta al bloque: el logo mide el 98 % del ancho en la
+   casilla de escritorio (150 x 131) y el 100 % en la de movil, con la ventaja de
+   que el bloque no tiene que desbordar. Donde `object-view-box` no exista la
+   regla se ignora y vuelve el `contain` del lienzo completo: el logo se ve algo
+   mas pequeno, pero nunca roto ni pisando al vecino. El `overflow` sigue visible
+   para que la sombra de contacto caiga fuera del bloque, y el `z-index` mantiene
+   el logo por delante de las pelotas. */
+.tile[data-sym="SC"],
 .tile[data-sym="MX"] {
-  border-color: rgba(255, 155, 117, 0.95);
-  background: radial-gradient(circle at 50% 40%, rgba(255, 240, 186, 0.82), rgba(255, 150, 70, 0.4) 66%, rgba(255, 255, 255, 0.06));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 0 24px rgba(255, 150, 70, 0.55);
+  overflow: visible;
+  z-index: 3;
+}
+
+.tile[data-sym="SC"] .tile__img,
+.tile[data-sym="MX"] .tile__img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  object-fit: contain;
+  object-position: center;
+  object-view-box: inset(24.93% 0);
+  filter: drop-shadow(0 6px 6px rgba(4, 22, 64, 0.42));
+}
+
+/* La etiqueta del multiplicador (`4×`, `250×`...) se ancla al filo inferior derecho
+   del bloque: el logo llega a los cuatro bordes, asi que la pastilla se pinta
+   encima del tramo final de la cola, que es la zona mas vacia del dibujo. */
+.tile[data-sym="MX"] .tile__bomb-value {
+  z-index: 2;
 }
 
 .tile__bomb-value {
@@ -6442,27 +6461,26 @@ body.is-demo .machine__side .controls .balance::after {
   .machine__side .machine__hero::before { display: none; }
   .machine__side .machine__spark { display: none; }
 
-  /* La pegatina del logo, centrada en el hueco azul de la nube. El dibujo la
-     abre entre x 20 y 80,15 % y entre y 12,07 y 31,14 % (bbox del borde dorado,
-     medido con segmentacion de color sobre d2.webp); su interior azul liso mide
-     397 x 179 px (x 19,85-80,46 % · y 11,96-31,25 %) y el centro cae en 50 % /
-     21,6 %, que es donde se ancla la caja. El lockup de MeridianoBet es 2:1
-     (900 x 450; el arte ocupa 884 x 443 px, el 98,2 % del lienzo, centrado),
-     asi que con 50 % de ancho la caja mide 327,5 x 163,75 px y el arte
-     321,6 x 160,8 px: quedan ~34,7 px de azul a los lados y ~7,6 px arriba y
-     abajo. Es el techo del hueco: por encima del 52 % el arte pisa el borde
-     dorado de la nube (comprobado a 1920 x 1080 sobre el deploy). 50 % es el
-     139 % del 36 % original y el 116 % del 43,2 % anterior, con el mismo
-     encuadre y centrado.
-     La respiracion se acota aqui (`pana-logo-breathe-side`: -4 px y 2 %) porque
-     con los -7 px y el 3 % de la animacion movil el pico del arte subiria
-     ~1,9 px por encima de ese filo. */
+  /* La pegatina del logo, centrada en la nube y MONTANDO sobre su borde dorado.
+     La placa de d2.webp arranca en el 50,1 % del lienzo (655 x 928) y su cuerpo
+     azul mide 394 px de ancho (x 131..525) con el aro dorado en ~414 px, asi que
+     414 px son el liston: el logo tiene que pasar de ahi para pisar el aro en vez
+     de flotar dentro del hueco. El lockup de MeridianoBet es 2:1 (900 x 450; el
+     arte ocupa 883 x 442 px y va pegado al borde derecho, solo 17 px de aire a la
+     izquierda), asi que con 80 % de ancho la caja mide 524 x 262 px y el arte
+     514,1 x 257,3 px: sobresale 50 px por cada lado del aro y lo tapa entero, que
+     es la jerarquia que se pide — el simbolo que mejor paga manda en la nube.
+     80 % es ademas el techo: con 84 % el arte ya se come la base de la corona y
+     su filo inferior se queda a 5 px de la barra superior del HUD (36,96 %). Con
+     80 % el arte va de 7,8 a 35,4 % del alto del lienzo, ~22 unidades de aire
+     sobre las placas, y la respiracion se acota aqui en -4 px y 2 %
+     (`pana-logo-breathe-side`) para que el pico no las roce. */
   .machine__side .machine__logo {
     position: absolute;
     left: 50%;
     top: 21.6%;
     z-index: 6;
-    width: 50%;
+    width: 80%;
     height: auto;
     aspect-ratio: 2 / 1;
     max-width: none;
@@ -7181,9 +7199,10 @@ body.is-demo .machine__side .controls .balance::after {
 }
 
 /* La respiracion de la chapa en escritorio: el mismo vaiven que en movil, pero
-   acotado a -4 px y 2 % para que el pico no roce el filo dorado del hueco (con
-   los -7 px y el 3 % de `pana-logo-breathe` el arte sube ~1,9 px de mas). El
-   `filter` se queda quieto, heredado de la regla base, para no repintar. */
+   acotado a -4 px y 2 % porque el logo va montado sobre el aro dorado de la nube
+   y con los -7 px y el 3 % de `pana-logo-breathe` el pico subia de mas hacia la
+   corona. El `filter` se queda quieto, heredado de la regla base, para no
+   repintar. */
 @keyframes pana-logo-breathe-side {
   0%,
   100% { transform: translateY(0) scale(1); }
@@ -7192,13 +7211,13 @@ body.is-demo .machine__side .controls .balance::after {
 
 /* --------------------------------------------------------------------------
    Escritorio bajo (≤660 px de alto): el lienzo de d2 se queda en ~340 px de
-   ancho, asi que la pegatina del logo baja al 45,8 % (el 91,7 % del 50 %, o
-   sea el mismo encuadre que en el escritorio alto) y se recentra en 21,8 %
-   para no rozar el borde dorado de la nube. El resto del arte escala solo.
+   ancho. El logo mantiene el 80 % —tiene que seguir montando sobre el borde
+   dorado de la nube— y solo se recentra en 21,8 % para ganar el aire que pierde
+   arriba.
    -------------------------------------------------------------------------- */
 @media (min-width: 900px) and (max-height: 660px) {
   .machine__side .machine__hero { display: block; }
-  .machine__side .machine__logo { width: 45.8%; top: 21.8%; }
+  .machine__side .machine__logo { width: 80%; top: 21.8%; }
 }
 
 /* Ventanas de menos de 470 px de alto: la placa del hero mide ~50 px y el

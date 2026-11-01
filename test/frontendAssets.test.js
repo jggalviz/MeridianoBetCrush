@@ -3,8 +3,9 @@
 /**
  * Contrato de assets del frontend.
  *
- * Los diez balones de las casillas viven en `public/src/assets/slot`; el motor
- * usa 11 simbolos (nueve regulares, el scatter y la bomba) y `format.js` es la
+ * El tablero solo usa dos motivos de la marca: los diez PNG de
+ * `public/src/assets/slot` (nueve balones + el logotipo) y el motor de 11
+ * simbolos (nueve regulares, el scatter y el multiplicador). `format.js` es la
  * unica fuente de verdad de su imagen. Esta prueba evita que un renombrado o
  * una ruta rota llegue a produccion.
  */
@@ -16,10 +17,10 @@ const path = require('node:path');
 
 const ROOT_DIR = path.join(__dirname, '..');
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
-const SYMBOLS_DIR = path.join(PUBLIC_DIR, 'src', 'assets', 'symbols');
 const SLOT_DIR = path.join(PUBLIC_DIR, 'src', 'assets', 'slot');
 const FORMAT_PATH = path.join(PUBLIC_DIR, 'ui', 'lib', 'format.js');
 const STYLE_PATH = path.join(PUBLIC_DIR, 'src', 'css', 'style.css');
+const THEME_PATH = path.join(PUBLIC_DIR, 'src', 'css', 'theme.css');
 const INDEX_PATH = path.join(PUBLIC_DIR, 'index.html');
 const LOGO_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'MERIDIANOBET-CRUSH-LOGO.webp');
 const LOGO_MASTER_PATH = path.join(ROOT_DIR, 'design', 'MeridianoBet Sports Crush Logo.png');
@@ -58,11 +59,16 @@ test('los 11 simbolos del motor apuntan a imagenes existentes', () => {
   const source = read(FORMAT_PATH);
   const slotMatches = [...source.matchAll(/image:\s*`\$\{SYMBOL_IMAGE_PATH\}([^`]+)`/g)];
 
-  assert.equal(slotMatches.length, 10, 'format.js debe mapear S1-S9 y SC sobre los balones');
+  assert.equal(slotMatches.length, 9, 'format.js debe mapear S1-S9 sobre los balones');
   assert.equal(
-    (source.match(/image:\s*BOMB_IMAGE_PATH/g) || []).length,
-    1,
-    'La bomba del multiplicador conserva su propio asset'
+    (source.match(/image:\s*BRAND_LOGO_IMAGE/g) || []).length,
+    2,
+    'El scatter y el multiplicador comparten el logotipo de MeridianoBet'
+  );
+  assert.match(
+    source,
+    /const BRAND_LOGO_IMAGE = `\$\{SYMBOL_IMAGE_PATH\}s10\.png`;/,
+    'El logo del tablero es s10.png'
   );
 
   for (const [, fileName] of slotMatches) {
@@ -71,16 +77,16 @@ test('los 11 simbolos del motor apuntan a imagenes existentes', () => {
     assert.match(fileName, /^s\d+\.png$/, `Nombre de asset inesperado: ${fileName}`);
   }
 
-  const bombFile = path.join(SYMBOLS_DIR, 'candy_4.png');
-  assert.ok(fs.existsSync(bombFile), `Falta ${path.relative(ROOT_DIR, bombFile)}`);
+  const logoFile = path.join(SLOT_DIR, 's10.png');
+  assert.ok(fs.existsSync(logoFile), `Falta ${path.relative(ROOT_DIR, logoFile)}`);
 });
 
-test('los simbolos del tablero giran con los balones de la carpeta slot', () => {
-  // La cuadricula dejo de usar los caramelos: los nueve regulares y el scatter
-  // son los balones deportivos de `public/src/assets/slot` y el numero del
-  // archivo sigue el tramo de la tabla de pagos (s1 = S1 ... s9 = S9; s10 es el
-  // monograma que cae como scatter). La unica pieza de caramelo que sobrevive
-  // es la bomba del multiplicador, que se pinta con su valor encima.
+test('el tablero solo usa balones y el logo de MeridianoBet', () => {
+  // La cuadricula dejo de usar los caramelos: los nueve regulares son los
+  // balones deportivos de `public/src/assets/slot` (s1 = S1 ... s9 = S9) y el
+  // logotipo s10.png entra por dos puertas, como scatter (SC) y como
+  // multiplicador (MX), que se pinta con su valor encima. Ya no queda ninguna
+  // pieza de caramelo en el tablero.
   const source = read(FORMAT_PATH);
   const start = source.indexOf('export const SYMBOLS');
   const end = source.indexOf('export const SYMBOL_KEYS');
@@ -105,9 +111,60 @@ test('los simbolos del tablero giran con los balones de la carpeta slot', () => 
     assert.equal(file, `s${index + 1}`, `${symbol} debe usar s${index + 1}.png`);
   });
 
-  assert.match(block, /SC: [^\n]*s10\.png/, 'El scatter es el monograma s10.png');
-  assert.match(block, /MX: [^\n]*BOMB_IMAGE_PATH/, 'La bomba mantiene su caramelo');
+  assert.match(block, /SC: [^\n]*BRAND_LOGO_IMAGE/, 'El scatter es el logo s10.png');
+  assert.match(block, /MX: [^\n]*BRAND_LOGO_IMAGE/, 'El multiplicador tambien es el logo s10.png');
   assert.doesNotMatch(block, /candy_/, 'Ninguna casilla del mapa vuelve a los caramelos');
+  assert.doesNotMatch(source, /candy_4\.png|BOMB_IMAGE_PATH/, 'format.js ya no sirve el caramelo de la bomba');
+});
+
+test('las nueve pelotas comparten bloque y el logo lo desborda', () => {
+  const css = read(STYLE_PATH);
+  const theme = read(THEME_PATH);
+
+  // Ninguna pelota tiene bloque propio: ya no hay regla por simbolo regular, asi
+  // que las nueve se pintan con el mismo vidrio.
+  assert.doesNotMatch(css, /\.tile\[data-sym="S[1-9]"\]/, 'Ninguna pelota se pinta con bloque propio');
+  assert.doesNotMatch(theme, /\.tile\[data-sym="S[1-9]"\]/, 'El tema tampoco pinta pelotas distintas');
+
+  // El bloque del logo (scatter + multiplicador) es el unico con estilo propio.
+  assert.match(
+    css,
+    /\.tile\[data-sym="SC"\],\r?\n\.tile\[data-sym="MX"\] \{[^}]*rgba\(255, 194, 26/,
+    'El bloque del logo se pinta en oro de marca'
+  );
+  assert.match(
+    theme,
+    /html\[data-theme="meridianobet"\] \.tile\[data-sym="SC"\],\r?\nhtml\[data-theme="meridianobet"\] \.tile\[data-sym="MX"\] \{[^}]*border-color:[^}]*rgba\(255, 194, 26/,
+    'El tema repinta el bloque del logo (scatter y multiplicador) en oro'
+  );
+
+  // El logo llena su bloque de borde a borde: la imagen ocupa la casilla entera y
+  // se le recorta el aire del PNG con `object-view-box` (`s10.png` mide 335 x 341
+  // con la tinta en 335 x 171, o sea 24,93 % transparente arriba y abajo). Sin ese
+  // recorte, el lienzo casi cuadrado obliga a `contain` a escalar por el alto y en
+  // la casilla apaisada del movil (52 x 29) el logo se queda en el 60 % del ancho.
+  assert.match(
+    css,
+    /\.tile\[data-sym="SC"\],\r?\n\.tile\[data-sym="MX"\] \{\r?\n  overflow: visible;\r?\n  z-index: 3;\r?\n\}/,
+    'La casilla del logo no recorta y se pone por delante de sus vecinas'
+  );
+  const logoImage = css.match(
+    /\.tile\[data-sym="SC"\] \.tile__img,\r?\n\.tile\[data-sym="MX"\] \.tile__img \{([^}]*)\}/
+  );
+  assert.ok(logoImage, 'El logo debe declarar su tamano dentro de la casilla');
+  for (const declaration of [
+    'left: 0;',
+    'top: 0;',
+    'width: 100%;',
+    'height: 100%;',
+    'object-fit: contain;',
+    'object-view-box: inset(24.93% 0);'
+  ]) {
+    assert.ok(
+      logoImage[1].includes(declaration),
+      `El logo llena su bloque con \`${declaration}\``
+    );
+  }
 });
 
 test('el logotipo de MeridianoBet se sirve ligero y con su proporcion 2:1', () => {
@@ -1109,22 +1166,24 @@ test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros q
 
   const logoBodies = bodies('\\.machine__side \\.machine__logo');
   assert.ok(logoBodies.length, 'El logo debe declarar su caja sobre la nube');
-  // 50 % es el techo del hueco azul de d2: la caja mide 327,5 x 163,75 px sobre
-  // el lienzo de 655 x 928 y el arte (321,6 x 160,8 px) deja ~7,6 px de azul
-  // arriba y abajo. Por encima del 52 % el arte pisa el borde dorado.
-  for (const declaration of ['left: 50%;', 'top: 21.6%;', 'width: 50%;', 'aspect-ratio: 2 / 1;']) {
+  // 80 % es el ancho con el que el logo MONTA sobre el borde dorado de la nube:
+  // la placa mide 394 px de ancho (aro ~414 px) sobre el lienzo de 655 x 928 y el
+  // arte del lockup mide 514,1 px, asi que se sale 50 px por cada lado y tapa el
+  // aro en vez de flotar dentro del hueco. Es el techo: al 84 % ya se come la base
+  // de la corona y su filo inferior roza la barra del HUD.
+  for (const declaration of ['left: 50%;', 'top: 21.6%;', 'width: 80%;', 'aspect-ratio: 2 / 1;']) {
     assert.ok(
       logoBodies.some((body) => body.includes(declaration)),
-      `El logo se apoya en el hueco de d2 con \`${declaration}\``
+      `El logo se apoya en la nube de d2 con \`${declaration}\``
     );
   }
   assert.ok(
-    logoBodies.some((body) => body.includes('top: 21.6%;') && body.includes('width: 50%;')),
-    'El logo ocupa el hueco de la nube de d2 al 139 % del tamano original'
+    logoBodies.some((body) => body.includes('top: 21.6%;') && body.includes('width: 80%;')),
+    'El logo monta sobre el borde dorado de la nube de d2 (80 % del ancho)'
   );
   assert.ok(
-    logoBodies.some((body) => body.includes('width: 45.8%;') && body.includes('top: 21.8%;')),
-    'En ventanas bajas el logo mantiene el centro con un 45,8 % de ancho (mismo encuadre)'
+    logoBodies.some((body) => body.includes('width: 80%;') && body.includes('top: 21.8%;')),
+    'En ventanas bajas el logo mantiene el 80 % y recentra la chapa en 21,8 %'
   );
   // La respiracion del escritorio va acotada en su propio juego de keyframes
   // (-4 px y 2 %): con los -7 px y el 3 % de la animacion movil el pico del

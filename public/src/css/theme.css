@@ -21,8 +21,9 @@
    - Paleta de marca: `--brand-*` (rojo y oro) y el azul de la consola
      (`--brand-blue*`), tomado de los pulsadores azules del case.
    - Acentos magenta del juego -> rojo. El oro NO se toca: es el color del
-     premio (saldo, S9, "MAX") y mantiene su lectura. El azul tampoco compite con
-     el premio: viste las superficies de la interfaz (barra y casillas).
+     premio (saldo, bloque del logo, "MAX") y mantiene su lectura. El azul
+     tampoco compite con el premio: viste las superficies de la interfaz (barra
+     y casillas) y es el unico color de las nueve pelotas, que comparten bloque.
    - Barra superior (vidrio azul), boton "Fichas de Prueba", modal y anillo de
      foco.
    - Ventana de juego: marco interior del tablero y las 30 casillas, que si
@@ -157,32 +158,21 @@ html[data-theme="meridianobet"] .tile[data-sym^="S"] {
     0 4px 12px rgba(2, 8, 26, 0.38);
 }
 
-/* S9 se queda dorado: es el simbolo de premio alto. */
-html[data-theme="meridianobet"] .tile[data-sym="S9"] {
-  border-color: rgba(214, 160, 20, 0.75);
-  background: linear-gradient(180deg, #fffdf0, #fff1c4 62%, #ffe39a);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 18px rgba(255, 199, 61, 0.4);
-}
+/* S9 ya no se distingue por color: todas las pelotas comparten el mismo bloque
+   de vidrio y la rareza la marca el propio balón. La regla desaparecio a
+   proposito; si algun dia vuelve un premio alto con color propio, va aqui. */
 
-/* Dispersion: celda blanca con doble halo (oro + rojo). */
-html[data-theme="meridianobet"] .tile[data-sym="SC"] {
-  border-color: rgba(200, 16, 46, 0.55);
-  background: radial-gradient(circle at 50% 40%, var(--brand-white) 0%, #fff4f6 48%, #ffe0e5 100%);
+/* El bloque del logo: es el UNICO distinto del tablero. Lo comparten el scatter
+   (SC) y el multiplicador (MX) porque los dos son el logotipo de MeridianoBet,
+   en el oro de marca (el mismo tono del premio) sobre blanco calido. */
+html[data-theme="meridianobet"] .tile[data-sym="SC"],
+html[data-theme="meridianobet"] .tile[data-sym="MX"] {
+  border-color: rgba(255, 194, 26, 0.95);
+  background: radial-gradient(circle at 50% 36%, var(--brand-white) 0%, #fffaea 44%, #ffe6ab 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 0 24px rgba(200, 16, 46, 0.30),
-    0 0 44px rgba(255, 199, 61, 0.26);
-}
-
-/* Bomba multiplicadora: tinte rojo de marca. */
-html[data-theme="meridianobet"] .tile[data-sym="MX"] {
-  border-color: rgba(200, 16, 46, 0.70);
-  background: radial-gradient(circle at 50% 40%, var(--brand-white) 0%, var(--brand-red-tint) 52%, #f7c9d0 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 24px rgba(200, 16, 46, 0.42);
+    0 0 26px rgba(255, 194, 26, 0.5),
+    0 0 52px rgba(200, 16, 46, 0.22);
 }
 
 /* Victoria y dispersion: el filo y el halo tienen que ganar tambien a las

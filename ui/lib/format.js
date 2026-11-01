@@ -7,17 +7,20 @@ import { GRID } from '../config/gameConfig.js';
 
 /*
  * Mapa visual de los 11 simbolos del motor sobre los assets de MERIDIANOBET
- * CRUSH. Los nueve regulares (S1-S9) y el scatter (SC) son los balones
- * deportivos de `public/src/assets/slot/`: `s1.png` .. `s9.png` van del pago
- * mas bajo al mas alto (el numero del archivo coincide con el tramo de la
- * tabla de pagos) y `s10.png` es el monograma de la marca, que cae como
- * scatter. La bomba (MX) conserva su caramelo explosivo: es el multiplicador
- * que se pinta con el valor encima (2x .. 250x), no una casilla mas.
+ * CRUSH. El tablero solo usa los dos motivos de la marca:
+ *
+ *   - Las nueve pelotas deportivas (`s1.png` .. `s9.png`), de la que menos
+ *     paga a la que mas: el numero del archivo coincide con el tramo de la
+ *     tabla de pagos.
+ *   - El logotipo de MeridianoBet (`s10.png`), que entra por dos puertas: como
+ *     scatter (SC), el simbolo que mejor paga, y como multiplicador (MX), que
+ *     se pinta con su valor encima (2x .. 250x) y sobrevive a las cascadas.
+ *
  * `image` es la fuente principal de la casilla; `glyph` queda como fallback
  * accesible si la imagen no llega a cargar.
  */
 const SYMBOL_IMAGE_PATH = '/src/assets/slot/';
-const BOMB_IMAGE_PATH = '/src/assets/symbols/candy_4.png';
+const BRAND_LOGO_IMAGE = `${SYMBOL_IMAGE_PATH}s10.png`;
 
 export const SYMBOLS = Object.freeze({
   S1: { glyph: '⚾', name: 'Béisbol', image: `${SYMBOL_IMAGE_PATH}s1.png` },
@@ -29,8 +32,8 @@ export const SYMBOLS = Object.freeze({
   S7: { glyph: '🏐', name: 'Balón de vóley', image: `${SYMBOL_IMAGE_PATH}s7.png` },
   S8: { glyph: '🎱', name: 'Bola 8', image: `${SYMBOL_IMAGE_PATH}s8.png` },
   S9: { glyph: '🎳', name: 'Bola de bolos', image: `${SYMBOL_IMAGE_PATH}s9.png` },
-  SC: { glyph: '✨', name: 'Monograma MeridianoBet (scatter)', image: `${SYMBOL_IMAGE_PATH}s10.png` },
-  MX: { glyph: '💥', name: 'Bomba multiplicadora', image: BOMB_IMAGE_PATH }
+  SC: { glyph: '✨', name: 'Logo MeridianoBet (scatter)', image: BRAND_LOGO_IMAGE },
+  MX: { glyph: '💠', name: 'Logo MeridianoBet (multiplicador)', image: BRAND_LOGO_IMAGE }
 });
 
 export const SYMBOL_KEYS = Object.freeze(['S9', 'S8', 'S7', 'S6', 'S5', 'S4', 'S3', 'S2', 'S1']);

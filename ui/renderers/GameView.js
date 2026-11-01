@@ -1249,15 +1249,15 @@ export class Ui {
         <tbody>${clusterRows}</tbody>
       </table>
 
-      <h3>Scatter 🍭 (solo tirada inicial)</h3>
+      <h3>Logo MeridianoBet · scatter (solo tirada inicial)</h3>
       <table class="paytable">
         <thead><tr><th>Cantidad</th>${scatterHeader}</tr></thead>
         <tbody><tr><td>Pago × apuesta</td>${scatterCells}</tr></tbody>
       </table>
 
-      <h3>Bombas multiplicadoras 💣</h3>
+      <h3>Logo multiplicador</h3>
       <p>${escapeHtml((info.multiplier && info.multiplier.rule) || '')}</p>
-      <p>Reparto de valores por bomba:</p>
+      <p>Reparto de valores por logo:</p>
       <ul>${multiplierItems}</ul>
 
       <h3>Modo bonus · ${escapeHtml(feature.label || FEATURE.label)}</h3>
