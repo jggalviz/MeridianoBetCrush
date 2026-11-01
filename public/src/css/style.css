@@ -1480,35 +1480,83 @@ body::after {
     0 6px 14px rgba(93, 11, 91, 0.14);
 }
 
-/* El bloque del logo es el único distinto del tablero: oro de marca, el mismo
-   tono del premio. Lo comparten el scatter y el multiplicador, porque los dos
-   son el logotipo de MeridianoBet. */
+/* El bloque del logo es el único distinto del tablero y tiene que gritarlo: es el
+   multiplicador, la casilla que el jugador quiere ver. Tres cosas lo separan de las
+   pelotas. Primero la medalla: en vez del vidrio azul se pinta oro macizo (filo
+   quemado, luz blanca arriba) con un abanico de rayos fijos, que le da cuerpo de
+   moneda, y una banda de luz que lo cruza en diagonal cada 3,6 s. Segundo el
+   tamano: el bloque entero se dibuja un 4 % mas grande que su hueco, asi que la
+   casilla sobresale de la rejilla y aun deja una linea de separacion con la
+   medalla vecina (el sangrado es de 3 px en un hueco de 9 px, de modo que nunca la
+   pisa).
+   Tercero el halo: `box-shadow` calido alrededor, que se rasteriza una vez.
+   La medalla vive en `::before` y no en el `background` del bloque a proposito:
+   los temas repintan `.tile` con mas especificidad (`html[data-theme] .tile`), y
+   desde el pseudo elemento la medalla gana siempre sin pelearse con ellos. El
+   pseudo esta recortado al bloque por su propio `border-radius`, asi que los
+   rayos no invaden al vecino. Lo comparten el scatter y el multiplicador, porque
+   los dos son el logotipo de MeridianoBet. */
 .tile[data-sym="SC"],
 .tile[data-sym="MX"] {
-  border-color: rgba(255, 194, 26, 0.95);
-  background: radial-gradient(circle at 50% 36%, rgba(255, 253, 242, 0.96), rgba(255, 239, 188, 0.78) 52%, rgba(255, 194, 26, 0.44) 100%);
+  --logo-tile-scale: 1.04;
+  border-color: rgba(255, 230, 150, 0.98);
+  transform: scale(var(--logo-tile-scale));
+  transform-origin: 50% 50%;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 0 24px rgba(255, 194, 26, 0.62),
-    0 0 44px rgba(200, 16, 46, 0.24);
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 0 1px rgba(126, 56, 2, 0.55),
+    inset 0 -10px 16px rgba(92, 34, 0, 0.45),
+    0 0 0 2px rgba(122, 52, 4, 0.9),
+    0 0 16px rgba(255, 198, 40, 0.78),
+    0 0 42px rgba(255, 128, 0, 0.38);
 }
 
-/* El logo llena su bloque de borde a borde, y para eso hay que recortarle el aire
-   al PNG. `s10.png` es un lienzo de 335 x 341 px con la tinta de 335 x 171 px:
-   el dibujo va pegado a los lados pero deja 85 px transparentes arriba y abajo
-   (24,93 % por cada lado). Con `contain` a secas, el lienzo casi cuadrado manda:
-   en una casilla apaisada —el movil mide 52 x 29 px— escala por el alto y el logo
-   se queda en el 60 % del ancho, perdido entre las pelotas. `object-view-box`
-   recorta ese aire antes de escalar, asi que el arte efectivo pasa a ser 335 x 171
-   (2:1) y `contain` lo ajusta al bloque: el logo mide el 98 % del ancho en la
-   casilla de escritorio (150 x 131) y el 100 % en la de movil, con la ventaja de
-   que el bloque no tiene que desbordar. Donde `object-view-box` no exista la
-   regla se ignora y vuelve el `contain` del lienzo completo: el logo se ve algo
-   mas pequeno, pero nunca roto ni pisando al vecino. El `overflow` sigue visible
-   para que la sombra de contacto caiga fuera del bloque, y el `z-index` mantiene
-   el logo por delante de las pelotas. */
+.tile[data-sym="SC"]::before,
+.tile[data-sym="MX"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image:
+    linear-gradient(112deg, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0.92) 47%, rgba(255, 255, 255, 0) 56%),
+    radial-gradient(circle at 26% 14%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0) 36%),
+    repeating-conic-gradient(from -8deg at 50% 46%, rgba(255, 255, 255, 0.4) 0deg 4deg, rgba(255, 255, 255, 0) 4deg 26deg),
+    radial-gradient(78% 92% at 50% 28%, #fff6d5 0%, #ffe08a 20%, #ffc23c 44%, #e99311 68%, #a9540a 92%, #8a4004 100%);
+  background-size: 260% 260%, auto, auto, auto;
+  background-position: -60% 50%, 50% 50%, 50% 50%, 50% 50%;
+  background-repeat: no-repeat, no-repeat, repeat, repeat;
+  box-shadow: inset 0 0 14px rgba(120, 48, 0, 0.42);
+  animation: logo-tile-sheen 3.6s linear infinite;
+}
+
+/* El barrido se queda quieto dos quintos del ciclo: la luz pasa, se va y la
+   medalla descansa antes de volver a encenderse. */
+@keyframes logo-tile-sheen {
+  0% { background-position: -60% 50%, 50% 50%, 50% 50%, 50% 50%; }
+  55% { background-position: 160% 50%, 50% 50%, 50% 50%, 50% 50%; }
+  100% { background-position: 160% 50%, 50% 50%, 50% 50%, 50% 50%; }
+}
+
+/* El logo se sale del marco: es la casilla que tiene que dominar el tablero, asi
+   que la tinta pasa del filo dorado y cae sobre la casilla vecina, como una
+   pegatina. Para desbordar hay que recortarle antes el aire al PNG. `s10.png` es
+   un lienzo de 335 x 341 px con la tinta de 335 x 171 px: el dibujo va pegado a
+   los lados pero deja 85 px transparentes arriba y abajo (24,93 % por cada lado),
+   asi que con `contain` a secas manda el lienzo casi cuadrado y el logo se queda
+   en el 60 % del ancho de una casilla apaisada —el movil mide 52 x 29 px—.
+   `object-view-box` recorta ese aire antes de escalar: el arte efectivo pasa a 335
+   x 171 (2:1) y `contain` lo ajusta a la caja, que mide 106 % del bloque (`--logo-bleed`),
+   de modo que la tinta pisa el filo dorado y se sale un 3 % por lado: el logo queda
+   por encima del marco, como una pegatina. Donde `object-view-box` no exista la regla
+   se ignora y vuelve el `contain` del lienzo completo: el logo se ve algo mas pequeno,
+   pero nunca roto. El `overflow` visible deja caer la sombra fuera del bloque, el
+   `z-index` mantiene el logo por delante de las pelotas y la flotacion perpetua
+   (`logo-tile-lift`) lo deja respirando sobre la medalla. */
 .tile[data-sym="SC"],
 .tile[data-sym="MX"] {
+  --logo-bleed: 3%;
   overflow: visible;
   z-index: 3;
 }
@@ -1516,25 +1564,95 @@ body::after {
 .tile[data-sym="SC"] .tile__img,
 .tile[data-sym="MX"] .tile__img {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
+  left: calc(var(--logo-bleed) * -1);
+  top: calc(var(--logo-bleed) * -1);
+  width: calc(100% + var(--logo-bleed) * 2);
+  height: calc(100% + var(--logo-bleed) * 2);
   max-width: none;
   max-height: none;
+  z-index: 1;
   padding: 0;
   object-fit: contain;
   object-position: center;
   object-view-box: inset(24.93% 0);
-  filter: drop-shadow(0 6px 6px rgba(4, 22, 64, 0.42));
+  filter:
+    drop-shadow(0 2px 1px rgba(66, 20, 0, 0.5))
+    drop-shadow(0 7px 8px rgba(66, 20, 0, 0.38));
+  will-change: transform;
+  animation: logo-tile-lift 3.2s ease-in-out infinite;
+}
+
+/* Flotacion perpetua: el logo sube un pelo y se enciende, como si la medalla lo
+   empujara. Es la animacion que hace que la casilla nunca este quieta, asi que
+   comparte el `filter` del `drop-shadow` en los dos extremos del ciclo. */
+@keyframes logo-tile-lift {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 2px 1px rgba(66, 20, 0, 0.5)) drop-shadow(0 7px 8px rgba(66, 20, 0, 0.38)) brightness(1);
+  }
+  50% {
+    transform: translateY(-3%) scale(1.045);
+    filter: drop-shadow(0 2px 1px rgba(66, 20, 0, 0.42)) drop-shadow(0 10px 12px rgba(66, 20, 0, 0.34)) brightness(1.14) saturate(1.08);
+  }
+}
+
+/* Cuando la medalla entra en una linea ganadora late, pero late desde su tamano:
+   la animacion general de victoria (`tile-win`) va de 1 a 1.12 y encogeria el
+   bloque justo en el momento en que mas tiene que lucirse. */
+.tile[data-sym="SC"].tile--win,
+.tile[data-sym="MX"].tile--win {
+  animation: logo-tile-win 0.46s ease-in-out infinite alternate;
+}
+
+@keyframes logo-tile-win {
+  from { transform: scale(1.04); }
+  to { transform: scale(1.16); }
 }
 
 /* La etiqueta del multiplicador (`4×`, `250×`...) se ancla al filo inferior derecho
-   del bloque: el logo llega a los cuatro bordes, asi que la pastilla se pinta
-   encima del tramo final de la cola, que es la zona mas vacia del dibujo. */
+   del bloque, encima del tramo final de la cola, que es la zona mas vacia del
+   dibujo. Late con el bloque para que el numero no se pierda en el brillo. */
 .tile[data-sym="MX"] .tile__bomb-value {
   z-index: 2;
+  will-change: transform;
+  animation: logo-tile-badge 1.9s ease-in-out infinite;
 }
+
+@keyframes logo-tile-badge {
+  0%, 100% { transform: scale(1); box-shadow: 0 3px 8px rgba(87, 7, 63, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 0 rgba(255, 240, 170, 0); }
+  50% { transform: scale(1.09); box-shadow: 0 3px 10px rgba(87, 7, 63, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 12px rgba(255, 240, 170, 0.95); }
+}
+
+/* En pantallas chicas el hueco entre casillas se estrecha hasta 2 px, asi que la
+   medalla crece menos y el logo sale solo un pelo del filo: se mantiene el gesto
+   sin que el bloque llegue a pisar al vecino. */
+@media (max-width: 899px) {
+  .tile[data-sym="SC"],
+  .tile[data-sym="MX"] {
+    --logo-bleed: 2%;
+    --logo-tile-scale: 1.04;
+  }
+}
+
+@media (max-width: 520px) {
+  .tile[data-sym="SC"],
+  .tile[data-sym="MX"] {
+    --logo-bleed: 1.5%;
+    --logo-tile-scale: 1.04;
+  }
+}
+
+/* Con movimiento reducido la medalla se queda encendida pero quieta: conserva el
+   oro, los rayos y el halo, pero pierde barrido, flotacion y latido. */
+@media (prefers-reduced-motion: reduce) {
+  .tile[data-sym="SC"]::before,
+  .tile[data-sym="MX"]::before { animation: none; }
+  .tile[data-sym="SC"] .tile__img,
+  .tile[data-sym="MX"] .tile__img { animation: none; }
+  .tile[data-sym="MX"] .tile__bomb-value { animation: none; }
+}
+
+
 
 .tile__bomb-value {
   right: 5px;

@@ -126,15 +126,42 @@ test('las nueve pelotas comparten bloque y el logo lo desborda', () => {
   assert.doesNotMatch(css, /\.tile\[data-sym="S[1-9]"\]/, 'Ninguna pelota se pinta con bloque propio');
   assert.doesNotMatch(theme, /\.tile\[data-sym="S[1-9]"\]/, 'El tema tampoco pinta pelotas distintas');
 
-  // El bloque del logo (scatter + multiplicador) es el unico con estilo propio.
+  // El bloque del logo (scatter + multiplicador) es el unico con estilo propio: filo
+  // de oro, halo calido y la casilla dibujada un 6 % mas grande que su hueco, para
+  // que sobresalga de la rejilla sin llegar a pisar al vecino.
+  const logoBlock = css.match(
+    /\.tile\[data-sym="SC"\],\r?\n\.tile\[data-sym="MX"\] \{\r?\n  --logo-tile-scale: [^}]*\}/
+  );
+  assert.ok(logoBlock, 'El bloque del logo debe tener regla propia');
+  for (const declaration of [
+    'border-color: rgba(255, 230, 150, 0.98);',
+    'transform: scale(var(--logo-tile-scale));',
+    '0 0 0 2px rgba(122, 52, 4, 0.9)',
+    'rgba(255, 198, 40, 0.78)'
+  ]) {
+    assert.ok(
+      logoBlock[0].includes(declaration),
+      `El bloque del logo se pinta en oro con \`${declaration}\``
+    );
+  }
+  assert.match(logoBlock[0], /--logo-tile-scale: 1\.04;/, 'La medalla crece un 4 % sobre su hueco');
+
+  // La medalla (oro macizo + abanico de rayos + barrido de luz) vive en `::before`,
+  // que ningun tema repinta: asi el bloque no depende de la especificidad del tema.
+  const medal = css.match(/\.tile\[data-sym="SC"\]::before,\r?\n\.tile\[data-sym="MX"\]::before \{([^}]*)\}/);
+  assert.ok(medal, 'La medalla debe pintarse en un pseudo elemento');
+  assert.match(medal[1], /repeating-conic-gradient\(/, 'La medalla lleva el abanico de rayos');
+  assert.match(medal[1], /radial-gradient\(78% 92% at 50% 28%[^;]*#ffc23c/, 'La medalla va en oro, no en blanco');
+  assert.match(medal[1], /animation: logo-tile-sheen/, 'La medalla barre una banda de luz sin parar');
   assert.match(
     css,
-    /\.tile\[data-sym="SC"\],\r?\n\.tile\[data-sym="MX"\] \{[^}]*rgba\(255, 194, 26/,
-    'El bloque del logo se pinta en oro de marca'
+    /@keyframes logo-tile-sheen \{\r?\n  0% \{ background-position: -60% 50%/,
+    'El barrido recorre la medalla en diagonal'
   );
+
   assert.match(
     theme,
-    /html\[data-theme="meridianobet"\] \.tile\[data-sym="SC"\],\r?\nhtml\[data-theme="meridianobet"\] \.tile\[data-sym="MX"\] \{[^}]*border-color:[^}]*rgba\(255, 194, 26/,
+    /html\[data-theme="meridianobet"\] \.tile\[data-sym="SC"\],\r?\nhtml\[data-theme="meridianobet"\] \.tile\[data-sym="MX"\] \{[^}]*border-color:[^}]*rgba\(255, 214, 84/,
     'El tema repinta el bloque del logo (scatter y multiplicador) en oro'
   );
 
@@ -145,7 +172,7 @@ test('las nueve pelotas comparten bloque y el logo lo desborda', () => {
   // la casilla apaisada del movil (52 x 29) el logo se queda en el 60 % del ancho.
   assert.match(
     css,
-    /\.tile\[data-sym="SC"\],\r?\n\.tile\[data-sym="MX"\] \{\r?\n  overflow: visible;\r?\n  z-index: 3;\r?\n\}/,
+    /\.tile\[data-sym="SC"\],\r?\n\.tile\[data-sym="MX"\] \{\r?\n  --logo-bleed: [\d.]+%;\r?\n  overflow: visible;\r?\n  z-index: 3;\r?\n\}/,
     'La casilla del logo no recorta y se pone por delante de sus vecinas'
   );
   const logoImage = css.match(
@@ -153,16 +180,17 @@ test('las nueve pelotas comparten bloque y el logo lo desborda', () => {
   );
   assert.ok(logoImage, 'El logo debe declarar su tamano dentro de la casilla');
   for (const declaration of [
-    'left: 0;',
-    'top: 0;',
-    'width: 100%;',
-    'height: 100%;',
+    'left: calc(var(--logo-bleed) * -1);',
+    'top: calc(var(--logo-bleed) * -1);',
+    'width: calc(100% + var(--logo-bleed) * 2);',
+    'height: calc(100% + var(--logo-bleed) * 2);',
     'object-fit: contain;',
-    'object-view-box: inset(24.93% 0);'
+    'object-view-box: inset(24.93% 0);',
+    'animation: logo-tile-lift'
   ]) {
     assert.ok(
       logoImage[1].includes(declaration),
-      `El logo llena su bloque con \`${declaration}\``
+      `El logo llena su bloque y flota con \`${declaration}\``
     );
   }
 });
