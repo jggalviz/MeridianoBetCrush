@@ -11,3 +11,5 @@ dist/
 .sim/
 .sim-chrome/
 tmp-case/
+# Recortes y scripts de medicion del arte (temporales, no se publican).
+.tmp-preview/

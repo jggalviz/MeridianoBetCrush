@@ -25,7 +25,9 @@
         href="/src/assets/fonts/fredoka-latin.woff2" crossorigin />
   <link rel="preload" as="font" type="font/woff2"
         href="/src/assets/fonts/lilita-one-latin.woff2" crossorigin />
-  <!-- Critico: sin scroll vertical mientras se descarga la hoja de estilos completa -->
+  <!-- Critico: sin scroll vertical mientras se descarga la hoja de estilos completa.
+       El color de respaldo es el azul marino del estadio (el mismo de `html` en
+       style.css) para que la espera no destelle en gris claro. -->
   <style>
     html,
     body {
@@ -33,7 +35,7 @@
       margin: 0;
       overflow: hidden;
       overscroll-behavior: none;
-      background-color: #eef0f4;
+      background-color: #0a1c4a;
     }
   </style>
 </head>

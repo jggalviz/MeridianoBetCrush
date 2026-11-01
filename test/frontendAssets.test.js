@@ -471,13 +471,13 @@ test('el escalado del tablero y las casillas se adapta al alto disponible', () =
   );
 });
 
-test('cada dispositivo pinta su propio fondo ilustrado en WebP de calidad 90', () => {
+test('cada dispositivo pinta su propio fondo ilustrado en WebP optimizado y sin reescalar', () => {
   const css = read(STYLE_PATH);
 
   // Un maestro por dispositivo, archivado en `design/`: todo lo que hay en
   // `public/src/**` se publica en el CDN y cada PNG pesa ~2 MB.
   const fondos = [
-    ['reino_de_caramelos_y_arcoiris.png', 'reino_de_caramelos_y_arcoiris.webp'],
+    ['fondo_desk_meridino_crush.png', 'fondo_desk_meridino_crush.webp'],
     ['avenida_fantastica_reino_caramelos.png', 'avenida_fantastica_reino_caramelos.webp'],
   ];
 
@@ -511,8 +511,10 @@ test('cada dispositivo pinta su propio fondo ilustrado en WebP de calidad 90', (
       `${served} debe conservar el alto del maestro`
     );
 
-    // Peso: q=90 deja los dos fondos en ~231/240 KB. El tope evita que una
-    // subida de calidad cuele un PNG disfrazado de WebP.
+    // Peso: el estadio de escritorio se queda en q=86 (~376 KB, con mucha mas
+    // textura que la avenida a q=90) y el movil en ~320 KB. El tope de 400 KB
+    // cubre a los dos y evita que una subida de calidad cuele un PNG disfrazado
+    // de WebP.
     assert.ok(
       binary.length < 400 * 1024,
       `${served} pesa ${(binary.length / 1024).toFixed(1)} KB (objetivo < 400 KB)`
@@ -525,12 +527,19 @@ test('cada dispositivo pinta su propio fondo ilustrado en WebP de calidad 90', (
     );
   }
 
-  // Escritorio: `body` pinta el reino del arcoiris centrado, escalado con
+  // Escritorio: `body` pinta el estadio de MeridianoBet centrado, escalado con
   // `cover` y anclado al viewport.
   assert.match(
     css,
-    /body\s*\{[^}]*background:\s*url\('\.\.\/assets\/reino_de_caramelos_y_arcoiris\.webp'\)\s*no-repeat\s*center\s*center\s*\/\s*cover\s*fixed;/,
-    "El escritorio debe pintar el arcoiris con `cover`, centrado y `fixed`"
+    /body\s*\{[^}]*background:\s*url\('\.\.\/assets\/fondo_desk_meridino_crush\.webp'\)\s*no-repeat\s*center\s*center\s*\/\s*cover\s*fixed;/,
+    'El escritorio debe pintar el estadio con `cover`, centrado y `fixed`'
+  );
+  // El respaldo inmediato (degradados de `html`) va en la misma gama nocturna,
+  // para que el relevo no salte de color mientras baja el WebP.
+  assert.match(
+    css,
+    /html\s*\{\s*background-color:\s*#0a1c4a;/,
+    'El respaldo de `html` debe ser el azul marino del estadio'
   );
 
   // Movil: el case se recorta sobre la avenida, con el mismo encuadre.
@@ -553,6 +562,23 @@ test('cada dispositivo pinta su propio fondo ilustrado en WebP de calidad 90', (
     );
   }
   assert.doesNotMatch(css, /assets\/background\.(?:webp|svg)/, 'El CSS no debe referenciar el fondo retirado');
+
+  // El reino del arcoiris cede el escritorio al estadio: el maestro se queda
+  // archivado en `design/`, el WebP que se servia se retira y el CSS no puede
+  // volver a pintarlo.
+  assert.ok(
+    fs.existsSync(path.join(ROOT_DIR, 'design', 'reino_de_caramelos_y_arcoiris.png')),
+    'El maestro del fondo retirado debe conservarse en design/'
+  );
+  assert.ok(
+    !fs.existsSync(path.join(PUBLIC_DIR, 'src', 'assets', 'reino_de_caramelos_y_arcoiris.webp')),
+    'reino_de_caramelos_y_arcoiris.webp no debe seguir en public/src/assets'
+  );
+  assert.doesNotMatch(
+    css,
+    /reino_de_caramelos_y_arcoiris/,
+    'El CSS no debe referenciar el fondo retirado'
+  );
 
   // Sin scroll vertical: el fondo no empuja la maqueta ni en escritorio ni en
   // movil (el `body` recorta y la carcasa mide el viewport dinamico).
@@ -880,14 +906,14 @@ test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros q
   // lo centra con aire y los controles se salen del arte.
   //
   // Movil (`build-mobile-art.js`): marco y consola recortados al alfa.
-  // Escritorio (`build-desktop-art.js`): d1 (marco del tablero), d5 (modulo
-  // hero + placas) y d3 (consola), a q=90 y con el mismo contrato de lienzo.
+  // Escritorio (`build-desktop-art.js`): d1 (marco del tablero) y d2 (columna
+  // lateral entera: nube del logo + placas + consola), a q=90 y con el mismo
+  // contrato de lienzo.
   const pieces = [
     { name: 'marco_movil', size: '1392x1093', max: 300 * 1024, build: 'build-mobile-art.js' },
     { name: 'consola_movil', size: '1780x883', max: 512 * 1024, build: 'build-mobile-art.js' },
-    { name: 'd1', size: '1017x819', max: 300 * 1024, build: 'build-desktop-art.js' },
-    { name: 'd5', size: '1471x1042', max: 560 * 1024, build: 'build-desktop-art.js' },
-    { name: 'd3', size: '599x468', max: 300 * 1024, build: 'build-desktop-art.js' }
+    { name: 'd1', size: '1033x843', max: 300 * 1024, build: 'build-desktop-art.js' },
+    { name: 'd2', size: '655x928', max: 560 * 1024, build: 'build-desktop-art.js' }
   ];
   const css = read(STYLE_PATH);
 
@@ -937,84 +963,98 @@ test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros q
 
   // El arte de escritorio se compila a q=90 y el comando queda registrado.
   const desktop = fs.readFileSync(path.join(ROOT_DIR, 'scripts', 'build-desktop-art.js'), 'utf8');
-  for (const name of ['d1', 'd5', 'd3']) {
+  for (const name of ['d1', 'd2']) {
     const block = desktop.slice(desktop.indexOf(`name: '${name}'`));
     assert.match(block.slice(0, 200), /quality: 90,/, `${name} se compila a calidad 90`);
   }
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8'));
   assert.equal(pkg.scripts['build:desktop-art'], 'node scripts/build-desktop-art.js');
 
-  // El CSS de escritorio pinta las tres piezas a sangre y ancla los controles
+  // El CSS de escritorio pinta las dos piezas a sangre y ancla los controles
   // en % del lienzo (las mismas medidas que imprime el script). Se buscan todas
   // las reglas del selector: las capas anteriores tambien declaran cajas para
   // estos botones y solo una lleva la geometria del arte.
-  for (const name of ['d1', 'd5', 'd3']) {
+  for (const name of ['d1', 'd2']) {
     assert.match(
       css,
       new RegExp(`url\\('\\.\\.\\/assets\\/${name}\\.webp'\\) no-repeat center \\/ 100% 100%`),
       `El CSS debe pintar ${name}.webp sin aire (100% 100%)`
     );
   }
-  // El arte antiguo del hero ya no se sirve ni se pinta.
-  assert.doesNotMatch(css, /d2\.webp/, 'El CSS ya no debe referenciar d2.webp');
-  assert.ok(
-    !fs.existsSync(path.join(PUBLIC_DIR, 'src', 'assets', 'd2.webp')),
-    'd2.webp no debe servirse: lo sustituye d5.webp'
-  );
+  // El tema anterior partia la columna en dos piezas: ambas quedan archivadas
+  // en `design/` y ni se sirven ni se pintan.
+  for (const retired of ['d5', 'd3']) {
+    assert.doesNotMatch(css, new RegExp(`${retired}\\.webp`), `El CSS ya no debe referenciar ${retired}.webp`);
+    assert.ok(
+      !fs.existsSync(path.join(PUBLIC_DIR, 'src', 'assets', `${retired}.webp`)),
+      `${retired}.webp no debe servirse: d2 funde el hero y la consola`
+    );
+    assert.ok(
+      fs.existsSync(path.join(ROOT_DIR, 'design', `${retired}.png`)),
+      `El arte retirado debe conservarse en design/${retired}.png`
+    );
+  }
   const bodies = (selector) => [...css.matchAll(new RegExp(`${selector} \\{([^}]*)\\}`, 'g'))]
     .map((match) => match[1]);
   const spinBodies = bodies('\\.machine__side \\.controls \\.btn--spin');
-  assert.ok(spinBodies.length, 'La capsula SPIN debe declarar su caja');
-  for (const declaration of ['left: 9.35%;', 'top: 39.32%;', 'width: 81.30%;', 'height: 26.71%;']) {
+  assert.ok(spinBodies.length, 'La capsula GIRAR debe declarar su caja');
+  for (const declaration of ['left: 9.16%;', 'top: 65.84%;', 'width: 80.76%;', 'height: 16.81%;']) {
     assert.ok(
       spinBodies.some((body) => body.includes(declaration)),
-      `El SPIN se ancla al dibujo con \`${declaration}\``
+      `El GIRAR se ancla al dibujo con \`${declaration}\``
     );
   }
   const windowBodies = bodies('\\.machine__table \\.board');
   assert.ok(windowBodies.length, 'El tablero debe declarar su caja sobre la ventana del marco');
-  for (const declaration of ['left: 5%;', 'top: 11.7%;', 'width: 89.3%;', 'height: 82.45%;']) {
+  for (const declaration of ['left: 5.3%;', 'top: 12.2%;', 'width: 89%;', 'height: 80.45%;']) {
     assert.ok(
       windowBodies.some((body) => body.includes(declaration)),
       `La ventana de d1 se cubre con \`${declaration}\``
     );
   }
 
-  // Geometria del hero de escritorio (d5 · 1471 x 1042): el lienzo manda en la
-  // columna lateral y las placas se reparten con las proporciones reales del
-  // dibujo, no con tercios, para que cada dato caiga en el centro de su placa.
+  // Geometria de la columna lateral (d2 · 655 x 928): el hero y la consola son
+  // una sola pieza, asi que el ancho sale del alto comun y no queda ninguna
+  // separacion vertical entre ambas mitades.
   assert.match(
     css,
-    /--side-w: calc\(\(var\(--frame-h\) - var\(--d-gap-y\)\) \/ 1\.48966\)/,
-    'La columna lateral reparte su alto con 1042/1471 (hero) + 468/599 (consola)'
+    /--frame-h: min\([\s\S]{0,180}?\/ 1\.93120\)/,
+    'El marco descuenta la columna lateral con 1,22539 (d1) + 0,70582 (d2)'
   );
   assert.match(
     css,
-    /--hero-h: calc\(var\(--side-w\) \* 0\.70836\)/,
-    'El hero mide 1042/1471 de su ancho'
+    /--frame-w: calc\(var\(--frame-h\) \* 1\.22539\)/,
+    'El marco mide 1033/843 de su alto'
   );
   assert.match(
     css,
-    /--frame-h: min\([\s\S]{0,180}?\/ 1\.91305\)/,
-    'El marco descuenta la columna lateral con 1,24176 (d1) + 0,67129 (d5 + d3)'
+    /--side-w: calc\(var\(--frame-h\) \/ 1\.41679\)/,
+    'La columna lateral mide 655/928 de su alto'
+  );
+
+  const sideBodies = bodies('\\.machine__side');
+  assert.ok(sideBodies.length, 'La columna lateral debe declarar su caja');
+  assert.ok(
+    sideBodies.some((body) => body.includes('width: var(--side-w);') && body.includes('height: var(--frame-h);')),
+    'La columna lateral comparte el alto del marco'
   );
 
   const heroBodies = bodies('\\.machine__side \\.machine__hero');
   assert.ok(heroBodies.length, 'El hero debe declarar su caja');
   assert.ok(
-    heroBodies.some((body) => body.includes('height: var(--hero-h);')),
-    'El hero ocupa el alto que le da `--hero-h`'
+    heroBodies.some((body) => body.includes('inset: 0;')),
+    'El hero mide lo mismo que el lienzo de d2'
   );
 
   const hudBodies = bodies('\\.machine__side \\.hud');
   assert.ok(hudBodies.length, 'Las placas deben declarar su banda sobre el dibujo');
   for (const declaration of [
-    'left: 5.64%;',
-    'top: calc(var(--hero-h) * 0.7582);',
-    'width: 88.92%;',
-    'height: calc(var(--hero-h) * 0.1602);',
-    'grid-template-columns: 31.73% 28.59% 32.11%;',
-    'column-gap: 3.75%;'
+    'left: 8.24%;',
+    'top: 36.96%;',
+    'width: 83.82%;',
+    'height: 7%;',
+    'grid-template-columns: 30.42% 29.70% 30.23%;',
+    'column-gap: 4.83%;'
   ]) {
     assert.ok(
       hudBodies.some((body) => body.includes(declaration)),
@@ -1024,19 +1064,19 @@ test('el arte de las dos maquinas se sirve con su lienzo exacto y los maestros q
 
   const logoBodies = bodies('\\.machine__side \\.machine__logo');
   assert.ok(logoBodies.length, 'El logo debe declarar su caja sobre la nube');
-  for (const declaration of ['left: 50.82%;', 'top: 36%;', 'width: 58%;', 'aspect-ratio: 2 / 1;']) {
+  for (const declaration of ['left: 50%;', 'top: 21.6%;', 'width: 36%;', 'aspect-ratio: 2 / 1;']) {
     assert.ok(
       logoBodies.some((body) => body.includes(declaration)),
-      `El logo se apoya en el hueco de d5 con \`${declaration}\``
+      `El logo se apoya en el hueco de d2 con \`${declaration}\``
     );
   }
   assert.ok(
-    logoBodies.some((body) => body.includes('top: 36%;') && body.includes('width: 58%;')),
-    'El logo ocupa el hueco de la nube de d5'
+    logoBodies.some((body) => body.includes('top: 21.6%;') && body.includes('width: 36%;')),
+    'El logo ocupa el hueco de la nube de d2'
   );
   assert.ok(
-    logoBodies.some((body) => body.includes('width: 50%;') && body.includes('top: 34%;')),
-    'En ventanas bajas el logo mantiene la base con un 50 % de ancho'
+    logoBodies.some((body) => body.includes('width: 33%;') && body.includes('top: 21.8%;')),
+    'En ventanas bajas el logo mantiene el centro con un 33 % de ancho'
   );
   // El case de escritorio responde como un pulsador de arcade: se hunde un 5 %
   // (y con el, su trozo de dibujo) y suelta un destello especular al pasar el

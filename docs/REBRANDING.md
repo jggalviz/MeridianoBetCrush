@@ -22,8 +22,8 @@ que distinguir dos grupos antes de tocar nada:
 | --- | --- | --- |
 | Barra superior, boton "Fichas de Prueba", modal, anillo de foco | CSS | **Si** |
 | Marco interior del tablero (`.board`, `.tile`) | Gradientes CSS | **Si** |
-| Carcasa de controles y botones (escritorio) | Recortes de `d3.webp` | No: reexportar arte |
-| Nube del logo (`.machine__hero`, escritorio) | `d5.webp` | No: reexportar arte |
+| Carcasa de controles, placas y botones (escritorio) | Recortes de `d2.webp` | No: reexportar arte |
+| Nube del logo (`.machine__hero`, escritorio) | `d2.webp` | No: reexportar arte |
 | Marco del tablero (escritorio) | `d1.webp` | No: reexportar arte |
 | Carcasa movil (`.machine__table`, `.controls`) | `marco_movil.webp`, `consola_movil.webp` | No: reexportar arte |
 | Fondo de escenario y logotipo | `fondo_desktop` / `fondo_movil`, `PANA-CRUSH-LOGO.webp` | No: reexportar arte |
@@ -33,9 +33,16 @@ La barra superior y las 30 casillas se pintan con el **azul de la consola**:
 `theme.css` define `--brand-blue` / `--brand-blue-deep` (los mismos tonos que
 `--gbtn-blue-*` en `style.css`) y `--brand-blue-ink` para contornos y sombras. La
 barra es vidrio translucido (degradado con alfa + `backdrop-filter`) y las
-casillas son vidrio azul sobre el interior palido del tablero, asi el marco del
-arte —rojo, blanco y azul— queda integrado con la interfaz en vez de flotar
-sobre ella.
+casillas son vidrio claro sobre el **panel marino** del tablero, asi la ventana
+del `d1` —azul profundo con filo dorado— queda integrada con el arte en vez de
+abrir un hueco claro dentro de una maquina oscura.
+
+El interior del tablero no lo pinta el arte: el hueco del `d1.webp` es
+transparente y lo rellena `.board`. `style.css` deja ahi el panel marino de
+partida y `theme.css` lo repite con los tokens de marca (brillo de estadio
+arriba, reflejo dorado al pie y filo dorado). Las casillas bajan a vidrio con
+alfa para que el panel se siga leyendo por detras y el filo blanco translucido
+mantiene separadas las 30 celdas.
 
 Consecuencia practica: los tokens de caramelo de `style.css`
 (`--candy-solid-body`, `--candy-solid-wash`, `--candy-rim`, `--candy-depth`,
@@ -130,11 +137,12 @@ el propio origen.
    La barra del navegador movil usa la meta `theme-color`, ya en rojo de marca:
    `<meta name="theme-color" content="#c8102e" />`.
 
-Pendiente de arte (ver la tabla de alcance): el marco del tablero (`d1.webp`),
-la nube del logo (`d5.webp`), la consola (`d3.webp`), las carcasas moviles
-(`marco_movil.webp`, `consola_movil.webp`), el fondo de escenario y el logotipo.
-Mientras sigan siendo los originales, el juego se lee como "interfaz de marca
-dentro del marco candy".
+Pendiente de arte (ver la tabla de alcance): las carcasas moviles
+(`marco_movil.webp`, `consola_movil.webp`) y los simbolos del tablero. El arte de
+escritorio ya es el del tema: el marco (`d1.webp`) y la columna lateral entera
+(`d2.webp`, que funde la nube del logo, las placas y la consola en una pieza).
+Mientras el movil siga con el arte original, esa vista se lee como "interfaz de
+marca dentro del marco candy".
 
 Los simbolos del tablero (20 PNG en `public/src/assets/symbols/`) se mapean en
 `ui/lib/format.js` (`SYMBOL_IMAGE_PATH`). Si se sustituyen por iconografia de
@@ -173,11 +181,12 @@ backend).
 1. `html data-theme="meridianobet"` en `public/index.html` (ya puesto).
 2. `npm run build:index && npm run build:ui && npm run build:config`.
 3. `npm test`: la unica familia de tests que fija la identidad candy es
-   `test/frontendAssets.test.js` (fondo `#8be8ff`, arte de consola `d1/d3/d5` y
-   geometria del marco). Esas aserciones describen la maqueta base; si el
-   rebranding tambien cambia el arte, hay que actualizar esos valores en el
-   test junto con `style.css`. El mismo test comprueba que `theme.css` siga
-   siendo CSS plano, sin `!important`, con prefijo de tema y sin medidas.
+   `test/frontendAssets.test.js` (respaldo `#0a1c4a`, fondo de escritorio
+   `fondo_desk_meridino_crush.webp`, arte `d1/d2` y geometria del marco). Esas
+   aserciones describen la maqueta base; si el rebranding tambien cambia el arte,
+   hay que actualizar esos valores en el test junto con `style.css`. El mismo test
+   comprueba que `theme.css` siga siendo CSS plano, sin `!important`, con prefijo
+   de tema y sin medidas.
 4. Revisar contraste de texto (WCAG AA) sobre blanco y sobre el rojo.
 5. `npm start` + `/api/health` deben seguir mostrando `operator.mode =
    LOCAL_VIRTUAL_DEMO` y una ronda completa debe pagar igual que antes: el

@@ -13,13 +13,16 @@
  * coloca los controles en % de esa caja: cualquier pixel transparente de mas
  * descentraria el dibujo y desalinearia las areas tactiles.
  *
- * Piezas:
- *   design/d1.png -> public/src/assets/d1.webp  (1017 x 819)  marco del tablero
- *   design/d5.png -> public/src/assets/d5.webp  (1471 x 1042) modulo hero + 3 placas
- *   design/d3.png -> public/src/assets/d3.webp  ( 599 x 468)  consola de controles
+ * Piezas del tema MeridianoBet Crush:
+ *   design/d1.png -> public/src/assets/d1.webp  (1033 x 843) marco del tablero
+ *   design/d2.png -> public/src/assets/d2.webp  ( 655 x 928) columna lateral:
+ *                    nube del logo + 3 placas + consola completa (− / lectura
+ *                    / + / MAX · GIRAR · FEVER · AUTO) en una sola pieza
  *
- * `d2` (605 x 443) queda archivado en `design/`: el arte nuevo `d5` trae la
- * misma composicion (nube del logo + tres placas ciruela) con mas lienzo.
+ * El tema anterior repartia la columna en dos piezas (`d5`, modulo hero con la
+ * nube y las placas, y `d3`, la consola). Ambas quedan archivadas en `design/`:
+ * el arte nuevo las funde en `d2`, asi que la columna entera se ancla con un
+ * unico lienzo y no hay costura entre el hero y la consola.
  *
  * El script, para cada pieza:
  *   1. mide el bbox de los pixeles con alfa visible;
@@ -49,26 +52,19 @@ const PIECES = [
   {
     name: 'd1',
     label: 'marco del tablero',
-    canvas: { width: 1017, height: 819 },
+    canvas: { width: 1033, height: 843 },
     quality: 90,
     maxBytes: 300 * 1024
   },
-  // El maestro `d5` llega a 1474 x 1067 y su alfa recorta 1471 x 1042: se
-  // publica al tamano del recorte, sin reescalar, para que el hero quede
-  // nitido en DPR 2 (en 1920 px el modulo se pinta a ~580 px de ancho).
+  // La columna lateral entera (655 x 928 de alfa sobre un maestro de 657 x 942)
+  // se publica sin reescalar: en 1920 px el panel se pinta a ~670 px de ancho y
+  // el arte va sobrado para DPR 2.
   {
-    name: 'd5',
-    label: 'modulo hero + placas',
-    canvas: { width: 1471, height: 1042 },
+    name: 'd2',
+    label: 'columna lateral (hero + consola)',
+    canvas: { width: 655, height: 928 },
     quality: 90,
     maxBytes: 560 * 1024
-  },
-  {
-    name: 'd3',
-    label: 'consola de controles',
-    canvas: { width: 599, height: 468 },
-    quality: 90,
-    maxBytes: 300 * 1024
   }
 ];
 

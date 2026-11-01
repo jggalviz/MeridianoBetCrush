@@ -9,11 +9,14 @@
  * Los maestros viven en `design/` porque todo lo que hay en `public/src/**` se
  * publica en el CDN y los PNG pesan ~2 MB cada uno:
  *
- *   design/reino_de_caramelos_y_arcoiris.png      1672 x 941    escritorio
- *   design/avenida_fantastica_reino_caramelos.png  941 x 1671   movil
+ *   design/fondo_desk_meridino_crush.png           1672 x 941    escritorio
+ *   design/avenida_fantastica_reino_caramelos.png   941 x 1671   movil
  *
- * El maestro movil es hoy el estadio 3D (el nombre del archivo y del WebP se
- * conservan para no tocar el mapeo del CSS ni del HTML).
+ * El maestro de escritorio es el estadio de deportes del tema MeridianoBet
+ * Crush (`Fondo Desk Meridino Crush`); sustituye al reino del arcoiris, que se
+ * archiva en `design/reino_de_caramelos_y_arcoiris.png`. El maestro movil es
+ * hoy el estadio 3D (el nombre del archivo y del WebP se conservan para no
+ * tocar el mapeo del CSS ni del HTML).
  *
  * El CSS sirve uno u otro segun el ancho (`body` para >= 900 px y la media
  * query de 899 px hacia abajo) y los pinta con `cover` + `center`, asi que el
@@ -22,8 +25,8 @@
  * comparten eje.
  *
  * Calidad 90 y sin reescalar:
- *   - a 90 los degradados del cielo y los arcoiris no hacen banding y el peso
- *     queda muy por debajo del umbral de 400 KB que vigila el test;
+ *   - a 90 los degradados del cielo y las luces del estadio no hacen banding y
+ *     el peso queda por debajo del umbral de 400 KB que vigila el test;
  *   - no se hace `resize`: el escritorio (1672 px) cubre 1080p con un 15 % de
  *     ampliacion que el navegador interpola de sobra, y el movil (1024 px)
  *     dobla la densidad de un iPhone de 390 px CSS. Ampliar aqui solo añadiria
@@ -41,17 +44,24 @@ const DESIGN = path.join(ROOT, 'design');
 const ASSETS = path.join(ROOT, 'public', 'src', 'assets');
 const DEPLOY = path.join(ROOT, '.vercel', 'output', 'static', 'src', 'assets');
 
-// 90 es el minimo que deja el cielo y los arcoiris sin banding visible sobre
-// `cover` en pantalla completa (ver cabecera).
+// 90 es el minimo que deja el cielo y las luces del estadio sin banding visible
+// sobre `cover` en pantalla completa (ver cabecera). Es el valor por defecto y
+// `BG_QUALITY` lo puede subir para una pasada de mas calidad.
 const QUALITY = Number(process.env.BG_QUALITY || 90);
 
-/** Un fondo por dispositivo: maestro, destino y relacion de aspecto exigida. */
+/**
+ * Un fondo por dispositivo: maestro, destino y relacion de aspecto exigida.
+ * `quality` solo se declara cuando la pieza no cabe en el tope de peso con la
+ * calidad por defecto: el estadio de escritorio tiene mucha mas textura
+ * (publico, gradas, luces) que la avenida movil, y a q=90 pesaba 446 KB.
+ */
 const BACKGROUNDS = [
   {
     key: 'desktop',
-    source: path.join(DESIGN, 'reino_de_caramelos_y_arcoiris.png'),
-    target: 'reino_de_caramelos_y_arcoiris.webp',
+    source: path.join(DESIGN, 'fondo_desk_meridino_crush.png'),
+    target: 'fondo_desk_meridino_crush.webp',
     use: 'escritorio (body)',
+    quality: 86,
   },
   {
     key: 'mobile',
@@ -64,7 +74,7 @@ const BACKGROUNDS = [
 const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
 
 /** Optimiza un maestro y devuelve el WebP junto a su metadata. */
-async function optimize(source) {
+async function optimize(source, quality) {
   const meta = await sharp(source).metadata();
   if (!meta.width || !meta.height) {
     throw new Error(`${path.basename(source)} no declara medidas: revisa el PNG`);
@@ -74,8 +84,8 @@ async function optimize(source) {
   // se descarta para no pagar un canal que nunca se pinta.
   const webp = await sharp(source)
     .rotate()
-    .flatten({ background: '#ffa8de' })
-    .webp({ quality: QUALITY, effort: 6, smartSubsample: true })
+    .flatten({ background: '#0a1c4a' })
+    .webp({ quality, effort: 6, smartSubsample: true })
     .toBuffer();
 
   const out = await sharp(webp).metadata();
@@ -102,7 +112,8 @@ async function optimize(source) {
       throw new Error(`Falta el maestro ${path.relative(ROOT, bg.source)}`);
     }
 
-    const { meta, out, webp } = await optimize(bg.source);
+    const quality = bg.quality ?? QUALITY;
+    const { meta, out, webp } = await optimize(bg.source, quality);
     const target = path.join(ASSETS, bg.target);
 
     fs.writeFileSync(target, webp);
@@ -119,7 +130,7 @@ async function optimize(source) {
     );
     console.log(
       `salida  ${path.relative(ROOT, target)}  ${out.width}x${out.height}  ` +
-        `${kb(webp.length)} (q=${QUALITY})  ${saved.toFixed(1)} % menos`
+        `${kb(webp.length)} (q=${quality})  ${saved.toFixed(1)} % menos`
     );
   }
 })().catch((err) => {
