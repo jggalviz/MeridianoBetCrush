@@ -1013,9 +1013,9 @@ test('la consola y el tablero comparten el mismo eje X en movil', () => {
   );
 
   // 4) La marca y el HUD caen sobre sus huecos del arte nuevo: el cielo del
-  //    estadio sostiene el logo a la izquierda y la franja de las tres placas
-  //    doradas va de 30,03 a 91,95 % del ancho y de 22,96 a 31,90 % del alto del
-  //    recorte.
+  //    estadio sostiene el logo centrado en el marco y la franja de las tres
+  //    placas doradas va de 30,03 a 91,95 % del ancho y de 22,96 a 31,90 % del
+  //    alto del recorte.
   const hudRule = css.match(
     /\.machine__side \.hud\s*\{[^}]*width:\s*calc\(var\(--m-w\) \* 0\.6192\);[^}]*\}/
   );
@@ -1028,7 +1028,7 @@ test('la consola y el tablero comparten el mismo eje X en movil', () => {
   assert.match(
     hudRule[0],
     /margin-left:\s*calc\(\(100% - var\(--m-w\)\) \/ 2 \+ var\(--m-w\) \* 0\.3003\);/,
-    'La franja arranca en la primera placa del HUD, donde acaba el logo'
+    'La franja arranca en la primera placa del HUD (30,03 % del marco)'
   );
   assert.match(
     hudRule[0],
@@ -1040,8 +1040,8 @@ test('la consola y el tablero comparten el mismo eje X en movil', () => {
   assert.ok(heroRule, 'La marca debe declarar su caja sobre el cielo del estadio');
   assert.match(
     heroRule[0],
-    /left:\s*calc\(\(100% - var\(--m-w\)\) \/ 2 \+ var\(--m-w\) \* 0\.02\);/,
-    'El logo se desplaza a la derecha del filo del marco, sobre el cielo'
+    /left:\s*calc\(\(100% - var\(--m-w\)\) \/ 2 \+ \(var\(--m-w\) - var\(--logo-w\)\) \/ 2\);/,
+    'El logo se centra en el marco con su ancho real, no con un porcentaje fijo'
   );
   assert.match(
     heroRule[0],

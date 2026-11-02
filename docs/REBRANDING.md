@@ -129,6 +129,10 @@ el propio origen.
    la franja de monedas y banderines del marco, justo encima del HUD; en 320 px
    manda el tope y la pegatina se queda con el aire justo, sin tocar la barra
    superior ni generar scroll horizontal.
+   La caja va **centrada en el marco**: `left` reparte el sobrante con el ancho
+   real del logo (`--logo-w`), asi que la separacion a los dos filos es la misma
+   en cualquier telefono, tambien cuando manda el tope por alto y la caja es mas
+   corta que el 78 %.
    Entre **600 y 899 px** (tablets verticales y escritorios pequenos con alto de
    sobra, `min-height: 521px`) el marco se estira hasta la barra superior y su
    unico cielo es ese 19,87 % del arte, asi que la chapa se quedaba en el 27 % del

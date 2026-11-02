@@ -4889,10 +4889,10 @@ body.is-demo .machine__side .controls .balance::after {
 
   /* ------------------------------------------------------------------------
      2) Marca y HUD sobre el arte
-     El cielo del estadio (arriba a la izquierda del marco) sostiene el logo y
-     las tres placas doradas del HUD sostienen las tres lecturas. Ambas capas se
-     superponen a la celda `frame` y se ciñen a su zona con % del recorte de
-     1392 x 1093 convertidos a `calc(var(--m-w) * k)`: así no dependen de la
+     El cielo del estadio (la franja superior del marco) sostiene el logo
+     centrado y las tres placas doradas del HUD sostienen las tres lecturas. Ambas
+     capas se superponen a la celda `frame` y se ciñen a su zona con % del recorte
+     de 1392 x 1093 convertidos a `calc(var(--m-w) * k)`: así no dependen de la
      altura de la celda ni de que la fila conserve la relación del dibujo.
      ------------------------------------------------------------------------ */
   .machine__side .machine__hero {
@@ -4923,9 +4923,9 @@ body.is-demo .machine__side .controls .balance::after {
        anterior) y la imagen `contain` dejaba 31 px de cielo DENTRO de su propia
        caja: eso era lo que hacia flotar el logo y dejaba el hueco bajo la barra.
        Con la caja 2:1 la tinta llega al borde inferior y la pegatina se apoya de
-       verdad en el marco. Su borde derecho cae en el 80 % del marco, por encima
-       de la franja del HUD (22,96-31,90 % del alto), asi que no tapa ni una
-       cifra.
+       verdad en el marco. La caja va centrada (ver `left`), asi que el arte queda
+       por encima de la franja del HUD (22,96-31,90 % del alto), equilibrado entre
+       los dos filos, sin tapar ni una cifra.
 
        El segundo termino es el tope por alto, y se aplica en TODO el rango
        movil: de `--logo-sky` se descuentan los 10 px que sube el fotograma 50 %
@@ -4948,11 +4948,14 @@ body.is-demo .machine__side .controls .balance::after {
     --logo-h: calc(var(--logo-w) / 2);
     width: var(--logo-w);
     height: var(--logo-h);
-    /* Desplazado a la derecha y apoyado en el marco: el 2 % lo separa del filo
-       izquierdo (el PNG no trae aire, su tinta arranca en el borde de la caja) y
-       deja el 20 % del ancho a la derecha, donde asoman las banderas, las monedas
-       y la pantalla LED del marco. */
-    left: calc((100% - var(--m-w)) / 2 + var(--m-w) * 0.02);
+    /* Centrado en el marco: el PNG no trae aire (su tinta arranca en el borde de
+       la caja), asi que el sobrante se reparte a partes iguales con el ancho REAL
+       del logo, que no siempre es el 78 % —cuando manda el tope por alto la caja
+       es mas corta y un porcentaje fijo la dejaria descuadrada—. El primer
+       termino centra el marco dentro de la maquina (la rejilla lo centra, pero
+       `left` se mide contra el padding box de `.machine`) y el segundo centra el
+       logo dentro del marco. */
+    left: calc((100% - var(--m-w)) / 2 + (var(--m-w) - var(--logo-w)) / 2);
     /* Anclado por abajo y 4 % mas bajo que el borde superior de las placas del
        HUD (0,8013 = 1 - 0,1987): la base del logo se monta sobre la franja de
        banderines y monedas decorativas del marco, que es donde tiene que
