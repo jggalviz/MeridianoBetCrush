@@ -106,7 +106,9 @@ const LIMITS = Object.freeze({
 
 const FEATURE_CONFIG = Object.freeze({
   id: 'TROPICAL_FEVER',
-  label: 'Tropical Fever',
+  // El id se mantiene: es el identificador del modo bonus que ya viaja en la
+  // config publica. El rotulo visible es el de la marca.
+  label: 'Meridiano Crush',
   costMultiplier: 100, // 100x la apuesta base
   spins: MAX_FEATURE_SPINS
 });

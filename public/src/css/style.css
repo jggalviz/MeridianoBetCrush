@@ -533,17 +533,14 @@ button:disabled { cursor: not-allowed; }
   box-shadow: 0 0 22px rgba(255, 194, 26, 0.62), 0 0 30px rgba(200, 16, 46, 0.26);
 }
 
+/* Anclaje de la etiqueta del multiplicador: filo inferior derecho del bloque,
+   encima del tramo final de la cola, que es la zona mas vacia del dibujo. El
+   aspecto de la pastilla (rubi, relieve, filo de perla) y su tinta viven en un
+   unico bloque mas abajo, junto al latido de la medalla. */
 .tile__bomb-value {
   position: absolute;
-  right: 4px;
-  bottom: 3px;
-  padding: 1px 5px;
-  border-radius: 7px;
-  font-size: clamp(8px, 1.1vw, 11px);
-  font-weight: 800;
-  color: #1b0a04;
-  background: linear-gradient(180deg, var(--gold), var(--mango));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  right: 5px;
+  bottom: 5px;
 }
 
 .tile--empty .tile__glyph { opacity: 0; }
@@ -1619,8 +1616,14 @@ body::after {
 }
 
 @keyframes logo-tile-badge {
-  0%, 100% { transform: scale(1); box-shadow: 0 3px 8px rgba(87, 7, 63, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 0 rgba(255, 240, 170, 0); }
-  50% { transform: scale(1.09); box-shadow: 0 3px 10px rgba(87, 7, 63, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 0 12px rgba(255, 240, 170, 0.95); }
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 0 rgba(255, 60, 110, 0));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.18) drop-shadow(0 0 4px rgba(255, 60, 110, 0.95));
+  }
 }
 
 /* En pantallas chicas el hueco entre casillas se estrecha hasta 2 px, asi que la
@@ -1654,16 +1657,55 @@ body::after {
 
 
 
+/* Etiqueta del multiplicador (`2×`, `250×`). Es lo mas pequeno del tablero y vive
+   encima del oro de la medalla, asi que se pinta como una cuenta de rubi con
+   volumen propio: degradado frambuesa -> rubi -> vino (cuatro paradas, para que
+   el filo inferior no se aplane), reflejo blanco en el casquete alto, relieve
+   interior (luz arriba, sombra abajo y un velo de brillo) y un filo de perla con
+   resplandor rosa que la separa del fondo dorado.
+   Los colores son tokens para que cada tema redefina SOLO la paleta (`theme.css`
+   la cambia por el rojo de marca) sin repetir geometria ni sombras. La pieza se
+   gira -4 grados con `rotate`, que es propiedad individual: asi no pisa el
+   `transform: scale()` del latido (`logo-tile-badge`) ni el `translate` de la
+   onda de reposo. */
 .tile__bomb-value {
-  right: 5px;
-  bottom: 5px;
-  padding: 2px 7px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  --badge-flare: #ff9ab5;
+  --badge-top: #ff5c86;
+  --badge-mid: #e51250;
+  --badge-deep: #a8073a;
+  --badge-base: #6f0124;
+  --badge-rim: rgba(255, 249, 226, 0.96);
+  --badge-ring: rgba(104, 2, 34, 0.92);
+  --badge-glow: rgba(255, 46, 104, 0.68);
+  --badge-ink: #fffdf5;
+  padding: 0.16em 0.55em 0.2em;
+  border: 1.25px solid var(--badge-rim);
   border-radius: 999px;
-  color: #54113e;
-  background: linear-gradient(180deg, #fff6a9, #ffb33f);
-  box-shadow: 0 3px 8px rgba(87, 7, 63, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  font-size: clamp(9px, 1.2vw, 13px);
+  rotate: -4deg;
+  color: var(--badge-ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44) 0%, rgba(255, 255, 255, 0.1) 38%, rgba(255, 255, 255, 0) 52%),
+    radial-gradient(120% 150% at 50% -34%, var(--badge-flare) 0%, rgba(255, 255, 255, 0) 58%),
+    linear-gradient(180deg, var(--badge-top) 0%, var(--badge-mid) 34%, var(--badge-deep) 68%, var(--badge-base) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    inset 0 -2px 3px rgba(52, 0, 18, 0.6),
+    inset 0 -1px 0 rgba(255, 176, 198, 0.35),
+    inset 0 0 7px rgba(255, 255, 255, 0.22),
+    0 0 0 1px var(--badge-ring),
+    0 0 9px var(--badge-glow),
+    0 2px 6px rgba(58, 0, 20, 0.55);
+  font-size: clamp(11px, 1.4vw, 16px);
+}
+
+/* En movil la casilla baja a ~54 px: la pastilla se aprieta para no comerse la
+   medalla, pero conserva el filo de perla y el relieve de la pieza. */
+@media (max-width: 520px) {
+  .tile__bomb-value {
+    padding: 0.12em 0.42em 0.16em;
+    border-width: 1px;
+    font-size: 10px;
+  }
 }
 
 .tile--win {
@@ -2257,7 +2299,7 @@ body.is-demo .balance__label::after { color: #fff3a8; }
 /* ==========================================================================
    Ajuste al viewport · sin scroll vertical
    El tablero es el unico bloque flexible: absorbe el alto disponible y las
-   casillas conservan su proporcion cuadrada. HUD, saldo y SPIN quedan siempre
+   casillas conservan su proporcion cuadrada. HUD, saldo y GIRAR quedan siempre
    dentro de la pantalla (1080p, 768p y movil).
    ========================================================================== */
 
@@ -2666,7 +2708,7 @@ body {
 /* --------------------------------------------------------------------------
    Pantallas bajas (1366x768, 1440x900): el panel de controles pasa a la
    derecha para que el tablero conserve caramelos grandes. Todo sigue dentro
-   del viewport; el HUD, el saldo y el SPIN quedan visibles.
+   del viewport; el HUD, el saldo y el GIRAR quedan visibles.
    -------------------------------------------------------------------------- */
 
 @media (min-width: 640px) and (max-height: 960px) {
@@ -3450,7 +3492,7 @@ body {
 
 /* --------------------------------------------------------------------------
    Bloque 3 · Tarjeta de saldo y controles
-   Orden vertical: SALDO → fila de apuesta → SPIN → (Tropical Fever | AUTO).
+   Orden vertical: SALDO → fila de apuesta → GIRAR → (MERIDIANO CRUSH | AUTO).
    El panel absorbe todo el alto que dejan el logo y los indicadores, de modo
    que la columna cierra exactamente con el borde inferior del tablero.
    -------------------------------------------------------------------------- */
@@ -3464,10 +3506,10 @@ body {
   justify-content: space-between;
   gap: 12px;
   /* Aire generoso solo en el Bloque 3: es la tarjeta que manda en la columna y
-     sus cuatro filas (saldo, apuesta, SPIN y acciones) ganan cuerpo con un
+     sus cuatro filas (saldo, apuesta, GIRAR y acciones) ganan cuerpo con un
      margen interno amplio. El alto de la tarjeta NO depende del padding (lo
      fija la columna, igual que el tablero), asi que este aire se lo cede la
-     fila flexible del SPIN: la caja exterior y el encaje a `100dvh` no se
+     fila flexible del GIRAR: la caja exterior y el encaje a `100dvh` no se
      mueven ni un pixel. Los Bloques 1 y 2 conservan su padding compacto. */
   padding: clamp(18px, 2.2vh, 26px);
   overflow: hidden;
@@ -3615,7 +3657,7 @@ body.is-demo .machine__side .controls__wallet {
   text-shadow: 0 1px 0 rgba(46, 4, 58, 0.38);
 }
 
-/* c+d) SPIN dominante arriba y, debajo, Tropical Fever y AUTO a la par. */
+/* c+d) GIRAR dominante arriba y, debajo, MERIDIANO CRUSH y AUTO a la par. */
 .machine__side .controls__actions {
   flex: 1 1 auto;
   min-height: 0;
@@ -3877,7 +3919,7 @@ body.is-demo .machine__side .controls__wallet {
 }
 
 /* Columna de control angosta: tipografia mas compacta para que las etiquetas
-   ("MULTIPLICADOR", "Tropical Fever") quepan en una o dos lineas sin desbordar
+   ("MULTIPLICADOR", "MERIDIANO CRUSH") quepan en una o dos lineas sin desbordar
    ni empujar el tablero. */
 @media (max-width: 1080px) {
   .machine__side .hud__label {
@@ -4052,7 +4094,7 @@ body,
    1) Botones de accion: caramelo con trazo exterior y relieve
    -------------------------------------------------------------------------- */
 
-/* Receta literal sobre relleno saturado con texto claro (SPIN, AUTO, + / -). */
+/* Receta literal sobre relleno saturado con texto claro (GIRAR, AUTO, + / -). */
 .machine__side .controls .btn--spin .btn__spin-label,
 .machine__side .controls .btn--spin .btn__spin-icon,
 .machine__side .controls .btn--auto .btn__title,
@@ -4067,7 +4109,7 @@ body,
 }
 
 /* Misma receta invertida donde el texto es oscuro sobre relleno claro
-   (MAX, TROPICAL FEVER, AUTO activo): trazo blanco + brillo superior. */
+   (MAX, MERIDIANO CRUSH, AUTO activo): trazo blanco + brillo superior. */
 .machine__side .controls__bet .chip--max,
 .machine__side .controls .btn--feature .btn__title,
 .machine__side .controls .btn--auto[aria-pressed="true"] .btn__title {
@@ -4086,7 +4128,7 @@ body,
   -webkit-text-stroke-width: 1px;
 }
 
-/* Subtitulos de los botones (FEVER 12x, AUTO 25): misma familia, sin trazo. */
+/* Subtitulos de los botones (CRUSH 12x, AUTO 25): misma familia, sin trazo. */
 .machine__side .controls .btn__sub {
   font-family: var(--font);
   font-weight: 700;
@@ -4239,10 +4281,16 @@ body,
   .machine__side .statusbar { font-size: 10px; }
 }
 
+/* Tinta de la etiqueta: blanco puro con relieve de contacto. Sin `text-stroke`
+   ni halo: a este tamano el contorno engorda la cifra y el resplandor la vuelve
+   pastosa; el blanco ya contrasta con el rubi, asi que basta una sombra corta que
+   asiente la letra sobre la pieza. */
 .tile__bomb-value {
-  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.32);
-  paint-order: stroke fill;
-  text-shadow: 0 2px 0 rgba(91, 14, 65, 0.5), 0 0 8px rgba(255, 255, 255, 0.45);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0;
+  -webkit-text-stroke: 0;
+  text-shadow: 0 1px 0 rgba(74, 0, 22, 0.92), 0 1px 2px rgba(56, 0, 16, 0.5);
 }
 
 /* --------------------------------------------------------------------------
@@ -4443,7 +4491,7 @@ body.is-demo .machine__side .controls .balance::after {
 }
 
 /* --------------------------------------------------------------------------
-   d) Base 3D "caramelo" comun a - + MAX SPIN Tropical Fever AUTO
+   d) Base 3D "caramelo" comun a - + MAX GIRAR MERIDIANO CRUSH AUTO
    -------------------------------------------------------------------------- */
 
 .machine__side .controls .gbtn {
@@ -4560,7 +4608,7 @@ body.is-demo .machine__side .controls .balance::after {
 }
 
 /* --------------------------------------------------------------------------
-   e) SPIN: el boton dominante
+   e) GIRAR: el boton dominante
    -------------------------------------------------------------------------- */
 
 .machine__side .controls .btn--spin.gbtn,
@@ -4693,7 +4741,7 @@ body.is-demo .machine__side .controls .balance::after {
 
 
 /* --------------------------------------------------------------------------
-   f) Tropical Fever y AUTO: misma altura, un icono y una capsula de valor
+   f) MERIDIANO CRUSH y AUTO: misma altura, un icono y una capsula de valor
    -------------------------------------------------------------------------- */
 
 .machine__side .controls .btn--feature.gbtn,
@@ -4720,7 +4768,7 @@ body.is-demo .machine__side .controls .balance::after {
 
 .machine__side .controls .gbtn .btn__title {
   /* 19 px es el maximo que deja el ancho util del panel (495 px): a 21 px
-     "Tropical Fever" + la estrella no cabia y se cortaba con elipsis. */
+     "MERIDIANO CRUSH" + la estrella no cabia y se cortaba con elipsis. */
   font-size: clamp(11px, 2vh, 19px);
   font-weight: 900;
   letter-spacing: 0.03em;
@@ -4741,7 +4789,7 @@ body.is-demo .machine__side .controls .balance::after {
   text-shadow: 0 2px 0 #1c2080;
 }
 
-/* Estrella de Tropical Fever y flecha de AUTO (16px maximos). */
+/* Estrella de MERIDIANO CRUSH y flecha de AUTO (16px maximos). */
 .machine__side .controls .btn__glyph,
 .machine__side .controls .btn__chev {
   flex: 0 0 auto;
@@ -4944,7 +4992,7 @@ body.is-demo .machine__side .controls .balance::after {
      marco   · cielo del estadio con focos, banderines y monedas (el logo se
                pega arriba a la izquierda)  |  SALDO · GANANCIA ·
                MULTIPLICADOR  |  ventana del tablero (6 x 5)
-     consola · discos FEVER (…) · AUTO (↻) · [ GIRAR ] · − · +
+     consola · discos CRUSH (…) · AUTO (↻) · [ GIRAR ] · − · +
                placas del pie: MÁS (1ª) · AUTO (2ª) · GIRAR + estado (3ª) ·
                APUESTA + MAX (4ª). Las cuatro llegan vacías en el dibujo: los
                rótulos los pinta el CSS sobre su placa (sección 6).
@@ -5396,7 +5444,7 @@ body.is-demo .machine__side .controls .balance::after {
    sobre una caja con la relacion del lienzo = `100% 100%`).
 
    Orden visual de la carcasa (medido en % del recorte):
-     discos  · FEVER 3,3-18,3 · AUTO 19,1-33,9 · GIRAR 36,6-62,4 ·
+     discos  · CRUSH 3,3-18,3 · AUTO 19,1-33,9 · GIRAR 36,6-62,4 ·
                − 65,0-80,1 · + 81,0-96,0   (y 41,0-70,4 % de alto; el GIRAR,
                21,6-70,4 %, lleva la corona dorada encima)
      placas  · MÁS 5,9-18,9 · AUTO 20,5-33,5 · GIRAR 36,6-62,4 ·
@@ -5405,7 +5453,7 @@ body.is-demo .machine__side .controls .balance::after {
    Las placas llegan VACIAS en el arte: el pie lo escriben el DOM y el estado
    del motor (ver secciones 5 y 6). Los rotulos impresos de la version anterior
    ya no existen, asi que solo se ocultan los textos que no aportan
-   (`Tropical Fever`, `AUTO`, `MAX`, `SPIN`), que siguen siendo el nombre
+   (`MERIDIANO CRUSH`, `AUTO`, `MAX`, `GIRAR`), que siguen siendo el nombre
    accesible de cada pulsador.
    -------------------------------------------------------------------------- */
 
@@ -5696,12 +5744,12 @@ body.is-demo .machine__side .controls .balance::after {
 
 /* --------------------------------------------------------------------------
    6) Botones laterales · areas tactiles sobre los discos y las placas
-   FEVER (izquierda, icono "..."), AUTO (izquierda, icono de refresco),
+   CRUSH (izquierda, icono "..."), AUTO (izquierda, icono de refresco),
    − / + (derecha) y MAX (placa de la derecha).
    -------------------------------------------------------------------------- */
 
 @media (max-width: 899px) {
-  /* --- FEVER: disco x 3,26-18,37 % · y 40,77-70,60 % ---------------------- */
+  /* --- CRUSH: disco x 3,26-18,37 % · y 40,77-70,60 % ---------------------- */
   .machine__side .controls #btn-feature.gbtn {
     left: 3.26%;
     top: 40.77%;
@@ -5867,7 +5915,7 @@ body.is-demo .machine__side .controls .balance::after {
 
   /* --- Nombres accesibles de los discos -----------------------------------
      Los rotulos visibles ya los pinta el CSS sobre cada placa, y `MAX` lo pinta
-     su pastilla: el texto que trae el DOM (`Tropical Fever`, `AUTO`, `MAX` y el
+     su pastilla: el texto que trae el DOM (`MERIDIANO CRUSH`, `AUTO`, `MAX` y el
      `GIRAR` de `#spin-label`) se recorta a 1x1 en una sola regla para que no se
      duplique sobre el dibujo. Sigue siendo el nombre accesible del pulsador, y
      `#spin-label` es ademas el texto que el JS cambia a "GIRANDO…": el rotulo
@@ -5961,7 +6009,7 @@ body.is-demo .machine__side .controls .balance::after {
     pointer-events: none;
   }
 
-  /* FEVER sin saldo suficiente: el disco se apaga bajo un velo. */
+  /* CRUSH sin saldo suficiente: el disco se apaga bajo un velo. */
   .machine__side .controls #btn-feature:disabled::before {
     content: "";
     display: block;
@@ -5975,7 +6023,7 @@ body.is-demo .machine__side .controls .balance::after {
 
 
 /* --------------------------------------------------------------------------
-   7) SPIN · el corazon de la consola
+   7) GIRAR · el corazon de la consola
    El disco coronado y su placa GIRAR los dibuja la carcasa; el boton solo
    aporta la zona tactil, el aro de pulso y la pastilla con el estado.
    -------------------------------------------------------------------------- */
@@ -6460,7 +6508,7 @@ body.is-demo .machine__side .controls .balance::after {
      d2.webp ·  655 x 928  columna lateral completa: nube del logo (x 20-80 % ·
                            y 12-33 %) + tres placas (x 6,3-94 % · y 35,3-45,5 %)
                            + consola entera (− / lectura / + / MAX · GIRAR ·
-                           FEVER · AUTO) en una sola pieza → columna izquierda
+                           CRUSH · AUTO) en una sola pieza → columna izquierda
 
    El tema anterior partia la columna en dos piezas (`d5`, modulo hero con la
    nube y las placas, y `d3`, la consola) y las apilaba con una separacion
@@ -6750,7 +6798,7 @@ body.is-demo .machine__side .controls .balance::after {
     position: absolute;
     display: flex;
     /* Rotulo arriba y capsula del valor debajo: el case deja el caramelo vacio,
-       asi que la columna centrada es la composicion de FEVER y AUTO. */
+       asi que la columna centrada es la composicion de CRUSH y AUTO. */
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -6846,7 +6894,7 @@ body.is-demo .machine__side .controls .balance::after {
 
   /* --- Geometria de los siete pulsadores ----------------------------------
      Cada caja es el bbox del pulsador dibujado en d2.webp (655 x 928), medido
-     por color y componente conexa. Las cajas de FEVER y AUTO se solapan un poco
+     por color y componente conexa. Las cajas de CRUSH y AUTO se solapan un poco
      en vertical (una capsula queda mas alta que la otra) pero nunca en
      horizontal, asi que sus areas tactiles no se pisan. */
   /* Disco − · x 10,23-23,97 % · y 55,39-65,09 % */
@@ -6929,7 +6977,7 @@ body.is-demo .machine__side .controls .balance::after {
     animation: none;
   }
 
-  /* FEVER · x 10,23-48,55 % · y 85,99-93,64 % */
+  /* CRUSH · x 10,23-48,55 % · y 85,99-93,64 % */
   .machine__side .controls #btn-feature {
     --art-x: 10.23;
     --art-y: 85.99;
@@ -7104,7 +7152,7 @@ body.is-demo .machine__side .controls .balance::after {
   }
 
   /* --- Rotulos de los pulsadores ------------------------------------------
-     El case trae los caramelos vacios: SPIN, TROPICAL FEVER, AUTO y MAX se
+     El case trae los caramelos vacios: GIRAR, MERIDIANO CRUSH, AUTO y MAX se
      pintan aqui, centrados en su capsula. Los iconos (−, +, estrella y flecha)
      ya estan dibujados, igual que el barrido antiguo del `.shine`. */
   .machine__side .controls .chip__icon,

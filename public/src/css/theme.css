@@ -194,12 +194,21 @@ html[data-theme="meridianobet"] .tile[data-sym].tile--scatter {
   border-color: var(--brand-red);
 }
 
-/* Etiqueta de valor de la bomba: de caramelo a pastilla de marca. */
+/* Etiqueta de valor del multiplicador. La geometria, el relieve, el filo de perla
+   y el latido viven en `style.css`; el tema solo cambia la PALETA por el rojo de
+   marca, un paso mas profundo que el rubi base (frambuesa -> rojo MeridianoBet ->
+   vino), para que la pieza se lea sobre el oro de la medalla sin perder la
+   identidad del tema. */
 html[data-theme="meridianobet"] .tile__bomb-value {
-  border-color: rgba(255, 255, 255, 0.85);
-  color: var(--brand-white);
-  background: linear-gradient(180deg, var(--brand-red-soft), var(--brand-red) 60%, var(--brand-red-dark));
-  box-shadow: 0 3px 8px rgba(80, 0, 14, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --badge-flare: #ff8aa6;
+  --badge-top: var(--brand-red-soft);
+  --badge-mid: var(--brand-red);
+  --badge-deep: #b30e2b;
+  --badge-base: #60040f;
+  --badge-rim: rgba(255, 238, 208, 0.98);
+  --badge-ring: rgba(86, 4, 16, 0.95);
+  --badge-glow: rgba(200, 16, 46, 0.78);
+  --badge-ink: var(--brand-white);
 }
 
 

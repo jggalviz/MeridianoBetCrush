@@ -107,7 +107,7 @@ export const GAME_CONFIG = deepFreeze({
   },
   "feature": {
     "id": "TROPICAL_FEVER",
-    "label": "Tropical Fever",
+    "label": "Meridiano Crush",
     "costMultiplier": 100,
     "spins": 10
   },

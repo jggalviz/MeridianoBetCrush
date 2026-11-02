@@ -828,7 +828,7 @@ test('los rotulos del case no se repintan: el DOM solo guarda nombre accesible y
   const html = read(INDEX_PATH);
   assert.match(
     html,
-    /<span class="btn__spin-label" id="spin-label">SPIN<\/span>/,
+    /<span class="btn__spin-label" id="spin-label">GIRAR<\/span>/,
     'El estado del giro debe seguir en el DOM para lectores de pantalla'
   );
   assert.match(
@@ -1561,6 +1561,72 @@ test('la capa de marca define la paleta Meridianobet (rojo, blanco, gris)', () =
     assert.ok(theme.includes(token), `Falta el token ${token} en theme.css`);
   }
   assert.match(theme, /--brand-red:\s*#[0-9a-f]{6};/i, '--brand-red debe ser un hex de 6 digitos');
+});
+
+test('la pastilla del multiplicador se pinta como una cuenta de rubi con volumen', () => {
+  const css = read(STYLE_PATH);
+  const theme = read(THEME_PATH);
+
+  // La etiqueta tiene dos bloques: el anclaje en la seccion del tablero y el
+  // acabado junto al latido de la medalla. Se aisla el del acabado por su primer
+  // token de paleta.
+  const paletteAt = css.indexOf('--badge-top:');
+  assert.ok(paletteAt > -1, 'Debe existir el bloque de acabado de `.tile__bomb-value`');
+  const start = css.lastIndexOf('.tile__bomb-value {', paletteAt);
+  assert.ok(start > -1, 'El bloque de acabado debe declararse en `.tile__bomb-value`');
+  const block = css.slice(start, css.indexOf('}', start));
+
+  // Volumen: el degradado baja por cuatro paradas (frambuesa -> rubi -> vino) y
+  // lleva dos capas encima (reflejo alto y foco de color), no un color plano.
+  const gradient = block.match(/linear-gradient\(180deg, var\(--badge-top\)[^;]*;/);
+  assert.ok(gradient, 'El cuerpo de la pastilla debe ser un degradado vertical con tokens');
+  assert.equal(
+    (gradient[0].match(/var\(--badge-(?:top|mid|deep|base)\)/g) || []).length,
+    4,
+    'El degradado necesita cuatro paradas para que el filo inferior no se aplane'
+  );
+  assert.match(
+    block,
+    /radial-gradient\([^;]*var\(--badge-flare\)/,
+    'La pastilla necesita un foco de color arriba que le de profundidad'
+  );
+  assert.match(
+    block,
+    /linear-gradient\(180deg, rgba\(255, 255, 255, 0\.44\)/,
+    'El reflejo del casquete alto separa el rubi de la luz'
+  );
+
+  // Relieve y resplandor: luz interior arriba, sombra interior abajo y un aro
+  // oscuro con halo de color fuera, para que se despegue del oro de la medalla.
+  for (const shadow of [
+    'inset 0 1px 0 rgba(255, 255, 255, 0.94)',
+    'inset 0 -2px 3px rgba(52, 0, 18, 0.6)',
+    'inset 0 0 7px rgba(255, 255, 255, 0.22)',
+    '0 0 0 1px var(--badge-ring)',
+    '0 0 9px var(--badge-glow)'
+  ]) {
+    assert.ok(block.includes(shadow), `El relieve de la pastilla necesita \`${shadow}\``);
+  }
+  assert.match(block, /border:\s*1\.25px solid var\(--badge-rim\);/, 'Filo de perla alrededor de la pastilla');
+  assert.match(block, /rotate:\s*-4deg;/, 'La pastilla se gira con `rotate` para no pisar el latido');
+
+  // La tinta no se engorda con `text-stroke`: el blanco ya contrasta con el rubi.
+  const ink = css.match(/\.tile__bomb-value \{\s*font-weight: 900;[\s\S]*?\}/);
+  assert.ok(ink, 'La tinta de la cifra debe declararse en su propia regla');
+  assert.match(ink[0], /-webkit-text-stroke: 0;/, 'Sin contorno: a este tamano engorda la cifra');
+
+  // El tema solo mueve la paleta; geometria, relieve y latido son compartidos.
+  const themeStart = theme.indexOf('html[data-theme="meridianobet"] .tile__bomb-value {');
+  assert.ok(themeStart > -1, 'La capa de marca debe redefinir la pastilla');
+  const themeBlock = theme.slice(themeStart, theme.indexOf('}', themeStart));
+  for (const token of ['--badge-top:', '--badge-mid:', '--badge-deep:', '--badge-glow:', '--badge-ink:']) {
+    assert.ok(themeBlock.includes(token), `El tema debe redefinir ${token}`);
+  }
+  assert.doesNotMatch(
+    themeBlock,
+    /\b(?:border|border-radius|box-shadow|background|padding|font-size|rotate):/,
+    'El tema no repite geometria ni sombras: solo cambia los tokens de paleta'
+  );
 });
 
 
