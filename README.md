@@ -70,7 +70,7 @@ El tema Meridianobet **ya esta activo**: `public/index.html` abre con
    reconstruye el HTML: `theme.css` queda inerte y el juego se ve como antes.
 4. Sustituye logotipo, marcos y simbolos segun la guia `docs/REBRANDING.md`.
 
-La capa de marca repinta lo que dibuja el CSS (barra superior, boton de fichas,
+La capa de marca repinta lo que dibuja el CSS (boton de fichas, capsula de audio,
 modal, marco interior del tablero y casillas). Las carcasas de la maquina, el
 fondo y los simbolos son arte bitmap: para cambiarlos hay que reexportar los
 assets, y la tabla de alcance de `docs/REBRANDING.md` indica cuales son.

@@ -273,7 +273,7 @@ test('el maestro del logo vive fuera de public/ y no viaja al CDN', () => {
   );
 });
 
-test('la barra superior firma MeridianoBet Crush y conserva los ganchos del juego', () => {
+test('la barra superior solo lleva los controles del juego', () => {
   const html = read(INDEX_PATH);
   const css = read(STYLE_PATH);
   const theme = read(path.join(PUBLIC_DIR, 'src', 'css', 'theme.css'));
@@ -288,18 +288,27 @@ test('la barra superior firma MeridianoBet Crush y conserva los ganchos del jueg
   );
   assert.doesNotMatch(html, /PANA CRUSH|Pana Crush|pana crush/, 'No deben quedar restos de la marca anterior');
 
-  // Firma: nombre + insignia del balon + etiqueta de rejilla, sin emojis.
-  assert.match(html, /<h1 class="brand__title">MeridianoBet /);
-  assert.match(html, /<span class="brand__crush">Crush<span class="brand__grid">6×5<\/span><\/span>/);
-  assert.match(html, /<span class="brand__grid">6×5<\/span>/);
-  assert.match(html, /<svg class="brand__ball" viewBox="0 0 32 32"/);
-
-  // La barra firma y nada mas: el subtitulo comercial ("Sports Grid Pays · RTP
-  // 95 % · Max. 10.000x") se retiro y el dato vive en la ficha tecnica del
-  // modal de reglas. La comprobacion evita que vuelva por inercia de un merge.
-  assert.doesNotMatch(html, /brand__sub|Sports Grid Pays/, 'La barra no lleva subtitulo comercial');
-  assert.doesNotMatch(css, /\.brand__sub/, 'style.css no debe conservar reglas del subtitulo retirado');
-  assert.doesNotMatch(theme, /\.brand__sub/, 'theme.css no debe conservar reglas del subtitulo retirado');
+  // La cabecera se quedo en la fila de controles: ni insignia del balon, ni
+  // titulo visible, ni subtitulo comercial. El nombre sobrevive en el `<h1>`
+  // para lectores de pantalla (unico encabezado de nivel 1 del documento) y en
+  // la pestaña del navegador. Las comprobaciones evitan que la marca vuelva por
+  // inercia de un merge.
+  assert.doesNotMatch(html, /class="brand|brand__/, 'La barra no lleva marca visible');
+  assert.doesNotMatch(css, /\.brand\b|\.brand__/, 'style.css no debe conservar reglas de marca');
+  assert.doesNotMatch(theme, /\.brand__/, 'theme.css no debe conservar reglas de marca');
+  assert.doesNotMatch(html, /Sports Grid Pays/, 'La barra no lleva subtitulo comercial');
+  assert.match(
+    html,
+    /<h1 class="sr-only">MeridianoBet Crush 6×5<\/h1>/,
+    'El nombre sigue disponible para lectores de pantalla'
+  );
+  // La barra es transparente: ni cristal en `style.css` ni repinte en el tema.
+  assert.doesNotMatch(css, /\.topbar\s*\{[^}]*background/, 'La barra no lleva fondo propio');
+  assert.doesNotMatch(
+    theme,
+    /html\[data-theme="meridianobet"\] \.topbar\s*\{/,
+    'theme.css no debe repintar la barra'
+  );
 
   // El contrato con el JS no cambia: el controlador busca estos ids y pinta el
   // silencio con `aria-pressed`, no con el texto del boton.
@@ -316,8 +325,9 @@ test('la barra superior firma MeridianoBet Crush y conserva los ganchos del jueg
     'El icono de silencio se pinta por CSS desde `aria-pressed`'
   );
 
-  // La capa de marca pinta la firma; la maqueta (geometria) vive en style.css.
-  for (const selector of ['.topbar', '.brand__mark', '.topbar__audio', '.brand__title .brand__crush']) {
+  // La capa de marca pinta los controles que quedan en la barra; la maqueta
+  // (geometria, fondo y alineacion) vive en style.css.
+  for (const selector of ['.topbar__audio', '.topbar .btn--demo']) {
     assert.ok(
       theme.includes(`html[data-theme="meridianobet"] ${selector}`),
       `theme.css debe pintar \`${selector}\``

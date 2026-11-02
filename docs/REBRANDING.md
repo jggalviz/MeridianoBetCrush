@@ -20,7 +20,7 @@ que distinguir dos grupos antes de tocar nada:
 
 | Superficie | Como se pinta | Editable desde `theme.css` |
 | --- | --- | --- |
-| Barra superior, boton "Fichas de Prueba", modal, anillo de foco | CSS | **Si** |
+| Boton "Fichas de Prueba", capsula de audio, modal, anillo de foco | CSS | **Si** |
 | Marco interior del tablero (`.board`, `.tile`) | Gradientes CSS | **Si** |
 | Carcasa de controles, placas y botones (escritorio) | Recortes de `d2.webp` | No: reexportar arte |
 | Nube del logo (`.machine__hero`, escritorio) | `d2.webp` | No: reexportar arte |
@@ -29,13 +29,18 @@ que distinguir dos grupos antes de tocar nada:
 | Fondo de escenario y logotipo | `fondo_desktop` / `fondo_movil`, `PANA-CRUSH-LOGO.webp` | No: reexportar arte |
 | Simbolos del tablero | `public/src/assets/slot/*.png` (y `symbols/candy_4.png` para la bomba) | No: reexportar arte |
 
-La barra superior y las 30 casillas se pintan con el **azul de la consola**:
-`theme.css` define `--brand-blue` / `--brand-blue-deep` (los mismos tonos que
-`--gbtn-blue-*` en `style.css`) y `--brand-blue-ink` para contornos y sombras. La
-barra es vidrio translucido (degradado con alfa + `backdrop-filter`) y las
-casillas son vidrio claro sobre el **panel marino** del tablero, asi la ventana
-del `d1` —azul profundo con filo dorado— queda integrada con el arte en vez de
-abrir un hueco claro dentro de una maquina oscura.
+Las 30 casillas se pintan con el **azul de la consola**: `theme.css` define
+`--brand-blue` / `--brand-blue-deep` (los mismos tonos que `--gbtn-blue-*` en
+`style.css`) y `--brand-blue-ink` para contornos y sombras. Las casillas son
+vidrio claro sobre el **panel marino** del tablero, asi la ventana del `d1`
+—azul profundo con filo dorado— queda integrada con el arte en vez de abrir un
+hueco claro dentro de una maquina oscura.
+
+La barra superior ya no tiene superficie propia: se retiraron la insignia, el
+titulo y el vidrio azul, y en su sitio queda una fila transparente con los
+controles del juego (fichas de prueba, sonido y ayuda) alineados a la derecha.
+El nombre del producto vive en el logo de la maquina, en la pestaña del
+navegador y en un `<h1>` oculto (`.sr-only`) para lectores de pantalla.
 
 El interior del tablero no lo pinta el arte: el hueco del `d1.webp` es
 transparente y lo rellena `.board`. `style.css` deja ahi el panel marino de

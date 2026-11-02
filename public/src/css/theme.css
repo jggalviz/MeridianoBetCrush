@@ -22,10 +22,11 @@
      (`--brand-blue*`), tomado de los pulsadores azules del case.
    - Acentos magenta del juego -> rojo. El oro NO se toca: es el color del
      premio (saldo, bloque del logo, "MAX") y mantiene su lectura. El azul
-     tampoco compite con el premio: viste las superficies de la interfaz (barra
-     y casillas) y es el unico color de las nueve pelotas, que comparten bloque.
-   - Barra superior (vidrio azul), boton "Fichas de Prueba", modal y anillo de
-     foco.
+     tampoco compite con el premio: viste las superficies de la interfaz (las
+     casillas) y es el unico color de las nueve pelotas, que comparten bloque.
+   - Boton "Fichas de Prueba", modal y anillo de foco. La cabecera no lleva
+     marca ni fondo (solo los controles), asi que arriba no hay nada que
+     repintar.
    - Botones secundarios y capsulas de valor (audio/ayuda, `100x`, giros de
      AUTO, cierre del modal): comparten la MISMA pastilla que los pulsadores
      del juego (cara roja, filo dorado y sombra de contacto) para que la
@@ -68,9 +69,9 @@
   --brand-gold: #ffc21a;
 
   /* Azul de la consola: los mismos tonos que los pulsadores azules del case
-     (`--gbtn-blue-*` en `style.css`), con el aclarado `#8caaff` como cabeza del
-     vidrio. La barra superior y las casillas giran sobre esta gama para que la
-     interfaz hable un solo idioma. */
+     (`--gbtn-blue-*` en `style.css`). El panel marino y las casillas escriben
+     sus degradados a mano, asi que estos tres tokens quedan como referencia de
+     la gama para futuros repintes de la ventana de juego. */
   --brand-blue: #5a72f4;
   --brand-blue-deep: #2e36bc;
   /* Tinta oscura del azul: sirve de contorno y de base de las sombras. */
@@ -237,95 +238,12 @@ html[data-theme="meridianobet"] .tile__bomb-value {
 
 
 
-/* --------------------------------------------------------------------------
-   4. Barra superior y firma de marca
-   La barra es DOM con fondo CSS: aqui si cambia de caramelo a vidrio azul (el
-   azul de la consola, translucido). El color del balon y de la ficha sale de
-   estos tokens; el dibujo vive en el HTML (`.brand__ball`) y su geometria en
-   `style.css`.
-   -------------------------------------------------------------------------- */
-
-html[data-theme="meridianobet"] .topbar {
-  /* Vidrio azul: el mismo azul de la consola, con alfa y `backdrop-filter`
-     para que el estadio se lea por detras sin perder el texto. El filo claro
-     superior da el canto de cristal y sustituye al acento rojo, que sobre azul
-     se apagaba. */
-  border-color: rgba(255, 255, 255, 0.26);
-  border-top-color: rgba(255, 255, 255, 0.55);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(140, 170, 255, 0.88) 0%,
-      rgba(90, 114, 244, 0.86) 50%,
-      rgba(46, 54, 188, 0.84) 100%
-    );
-  box-shadow:
-    0 12px 28px rgba(16, 26, 77, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(16, 26, 77, 0.2);
-  backdrop-filter: blur(14px) saturate(1.25);
-}
-
-/* El brillo diagonal de caramelo no forma parte de la identidad. */
-html[data-theme="meridianobet"] .topbar::after {
-  background: none;
-}
-
-/* Insignia: cuadro blanco con anillo rojo y el balon del logotipo en rojo. */
-html[data-theme="meridianobet"] .brand__mark {
-  color: var(--brand-red);
-  border-color: var(--brand-red);
-  background: radial-gradient(circle at 34% 26%, var(--brand-white) 0%, #fff8f6 46%, var(--brand-red-tint) 100%);
-  box-shadow:
-    0 6px 14px rgba(16, 26, 77, 0.34),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.9);
-}
-
-/* El balon es dibujo de linea: sin `fill` el SVG lo rellenaria de negro. */
-html[data-theme="meridianobet"] .brand__ball-shell {
-  fill: none;
-  stroke: var(--brand-red);
-  stroke-width: 2.1;
-}
-
-html[data-theme="meridianobet"] .brand__ball-core {
-  fill: var(--brand-red);
-}
-
-html[data-theme="meridianobet"] .brand__ball-seams {
-  fill: none;
-  stroke: var(--brand-red);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-}
-
-/* Titulo: "MeridianoBet" en blanco y "Crush" en el oro del logotipo. Sobre el
-   vidrio azul el contorno pasa del rojo del arte al azul tinta: el rojo a 1 px
-   sobre azul vibra, y el tinta mantiene el oro legible sin competir con el. */
-html[data-theme="meridianobet"] .brand__title {
-  color: var(--brand-white);
-  -webkit-text-stroke: 0;
-  text-shadow: 0 1px 2px rgba(16, 26, 77, 0.45);
-}
-
-html[data-theme="meridianobet"] .brand__title .brand__crush {
-  color: var(--brand-gold);
-  -webkit-text-stroke: 1.1px var(--brand-blue-ink);
-  paint-order: stroke fill;
-  text-shadow: 0 2px 0 rgba(16, 26, 77, 0.45);
-}
-
-/* La etiqueta 6x5 es el unico bloque solido: rojo con cifras blancas. El filo
-   azul tinta la separa del vidrio de la barra. */
-html[data-theme="meridianobet"] .brand__title .brand__grid {
-  color: var(--brand-white);
-  -webkit-text-stroke: 0;
-  background: var(--brand-red);
-  box-shadow: 0 1px 0 var(--brand-blue-ink);
-}
+/* La cabecera ya no tiene marca ni fondo: es una fila transparente con los
+   controles del juego (ver `.topbar` en `style.css`), asi que aqui no hay nada
+   que repintar. La pastilla de esos controles vive en la seccion siguiente. */
 
 /* --------------------------------------------------------------------------
-   5. Controles secundarios: la misma pastilla que los pulsadores del juego
+   4. Controles secundarios: la misma pastilla que los pulsadores del juego
    La capsula de audio, la ficha de prueba, las capsulas de valor (`100x` y los
    giros de AUTO) y el cierre del modal comparten ahora el acabado de los
    botones principales de la maquina: cara roja de marca, filo dorado, luz
@@ -459,7 +377,7 @@ html[data-theme="meridianobet"] .modal__head .icon-btn:hover {
 }
 
 /* --------------------------------------------------------------------------
-   6. Modal de reglas y anillo de foco
+   5. Modal de reglas y anillo de foco
    -------------------------------------------------------------------------- */
 
 html[data-theme="meridianobet"] .modal__backdrop {

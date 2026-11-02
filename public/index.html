@@ -41,26 +41,12 @@
 </head>
 <body>
   <div class="app">
+    <!-- La barra no lleva marca ni fondo: solo los controles del juego. El
+         nombre del producto vive en el logo de la maquina y en la pestaña del
+         navegador; aqui queda solo un `<h1>` para lectores de pantalla, que es
+         el unico encabezado de nivel 1 del documento. -->
     <header class="topbar">
-      <div class="brand">
-        <!-- Insignia de marca: el balón del logotipo. El color lo pone
-             `theme.css` (`currentColor`); el dibujo es el mismo en cualquier
-             tamano porque escala con la caja del icono. -->
-        <span class="brand__mark" aria-hidden="true">
-          <svg class="brand__ball" viewBox="0 0 32 32" focusable="false">
-            <circle class="brand__ball-shell" cx="16" cy="16" r="10.4" />
-            <path class="brand__ball-core" d="M16 11.9l-4.1 3 1.6 4.8h5l1.6-4.8z" />
-            <path class="brand__ball-seams"
-                  d="M16 11.9V6M11.9 14.9L6.8 13.2M13.5 19.7l-3.2 5M18.5 19.7l3.2 5M20.1 14.9l5.1-1.7" />
-          </svg>
-        </span>
-        <div class="brand__text">
-          <!-- Cabecera limpia: solo la firma. El dato comercial (RTP base, tope
-               por ronda) vive en la ficha tecnica del modal de reglas, asi que
-               no se repite como subtitulo bajo el titulo. -->
-          <h1 class="brand__title">MeridianoBet <span class="brand__crush">Crush<span class="brand__grid">6×5</span></span></h1>
-        </div>
-      </div>
+      <h1 class="sr-only">MeridianoBet Crush 6×5</h1>
 
       <div class="topbar__right">
         <button class="btn btn--demo" id="btn-demo" type="button" aria-pressed="false"
