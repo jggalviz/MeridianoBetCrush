@@ -293,7 +293,13 @@ test('la barra superior firma MeridianoBet Crush y conserva los ganchos del jueg
   assert.match(html, /<span class="brand__crush">Crush<span class="brand__grid">6×5<\/span><\/span>/);
   assert.match(html, /<span class="brand__grid">6×5<\/span>/);
   assert.match(html, /<svg class="brand__ball" viewBox="0 0 32 32"/);
-  assert.match(html, /<p class="brand__sub">Sports Grid Pays/);
+
+  // La barra firma y nada mas: el subtitulo comercial ("Sports Grid Pays · RTP
+  // 95 % · Max. 10.000x") se retiro y el dato vive en la ficha tecnica del
+  // modal de reglas. La comprobacion evita que vuelva por inercia de un merge.
+  assert.doesNotMatch(html, /brand__sub|Sports Grid Pays/, 'La barra no lleva subtitulo comercial');
+  assert.doesNotMatch(css, /\.brand__sub/, 'style.css no debe conservar reglas del subtitulo retirado');
+  assert.doesNotMatch(theme, /\.brand__sub/, 'theme.css no debe conservar reglas del subtitulo retirado');
 
   // El contrato con el JS no cambia: el controlador busca estos ids y pinta el
   // silencio con `aria-pressed`, no con el texto del boton.
