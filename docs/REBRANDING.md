@@ -49,16 +49,24 @@ arriba, reflejo dorado al pie y filo dorado). Las casillas bajan a vidrio con
 alfa para que el panel se siga leyendo por detras y el filo blanco translucido
 mantiene separadas las 30 celdas.
 
-El modal de reglas y tabla de pagos es la unica superficie **clara** del tema:
-`theme.css` lo pinta de blanco a gris 100, asi que ahi tambien fija la tinta
-completa (titulo y subtitulos en rojo oscuro, parrafos y filas en
-`--brand-ink`, cabecera de la tabla en gris profundo y multiplicadores en rojo
-oscuro y negrita). La capa base los escribia en crema y dorado palido porque
-eran para el modal morado; sobre blanco se quedaban en ~1,6:1 y el texto casi no
-se distinguia. `test/frontendAssets.test.js` recalcula el contraste WCAG de esos
-pares y falla si alguien devuelve la tinta clara. Las dos tablas del documento
-tambien se comprimen por `clamp()` en `style.css` (cifras siempre en una linea,
-nombre del simbolo a dos) para que quepan en 320 px sin scroll horizontal.
+El modal de reglas y tabla de pagos no es una hoja blanca: `theme.css` lo pinta
+como la **consola del juego**, con las mismas cuatro capas del tablero —reticula
+de 1 px, brillo de estadio arriba, reflejo dorado al pie y cuerpo marino— mas el
+filo de oro en el borde y en un aro exterior. Asi el documento se lee como una
+pestaña de la maquina y no como una ventana pegada sobre el arte (el velo del
+fondo tambien pasa a marino, para que el escenario siga leyendose detras).
+
+Consecuencia obligada: la tinta es la del panel, no la del modal morado. La capa
+base la escribe en crema al 80-90 %, que sobre el marino tambien se pierde, asi
+que `theme.css` fija tres tokens `--brand-panel-*` (tinta, azul claro y oro
+claro) para titulo, subtitulos, parrafos, listas, `code`, tabla de pagos y
+formulario de sesion. `test/frontendAssets.test.js` lee el tramo **mas claro** del
+degradado (el peor caso) y recalcula el contraste WCAG de cada par: los tres
+pasan de 7:1 incluso en la luz de arriba, y el test falla si alguien devuelve la
+tarjeta blanca, la tinta crema o aclara el panel sin revisar la tinta. Las dos
+tablas del documento tambien se comprimen por `clamp()` en `style.css` (cifras
+siempre en una linea, nombre del simbolo a dos) para que quepan en 320 px sin
+scroll horizontal.
 
 Consecuencia practica: los tokens de caramelo de `style.css`
 (`--candy-solid-body`, `--candy-solid-wash`, `--candy-rim`, `--candy-depth`,

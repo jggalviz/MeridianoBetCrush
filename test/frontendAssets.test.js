@@ -1669,41 +1669,49 @@ test('la capa de marca define la paleta Meridianobet (rojo, blanco, gris)', () =
   assert.match(theme, /--brand-red:\s*#[0-9a-f]{6};/i, '--brand-red debe ser un hex de 6 digitos');
 });
 
-test('el modal de reglas se lee sobre la tarjeta clara del tema (contraste AA)', () => {
+test('el modal de reglas se lee sobre la consola marina del tema (contraste AA)', () => {
   const theme = read(THEME_PATH);
 
-  /* La tarjeta del tema es clara (blanco -> gris 100) mientras la capa base
-     escribe la tinta del modal morado (crema al 80-90 %). Sin el repintado de
-     `theme.css` el documento queda casi invisible, asi que se comprueba que
-     cada zona tenga su color y que el par texto/fondo supere el umbral. */
+  /* La tarjeta del tema es la consola del juego —panel marino con filo de oro—,
+     no una hoja blanca, mientras la capa base escribe la tinta del modal morado
+     (crema al 80-90 %). Se comprueba cada zona del documento y despues el par
+     texto/fondo sobre el propio degradado del panel. */
   const expects = [
     [
-      /html\[data-theme="meridianobet"\] \.modal__card \{[^}]*color: var\(--brand-ink\);/,
-      'La tarjeta hereda la tinta oscura de marca',
+      /html\[data-theme="meridianobet"\] \.modal__card \{[^}]*linear-gradient\(160deg, #123a86 0%, #0a1c4a 56%, #05102c 100%\)/,
+      'La tarjeta del modal se pinta con el panel marino del tablero',
     ],
     [
-      /html\[data-theme="meridianobet"\] \.modal__head h2 \{[^}]*color: var\(--brand-red-dark\);/,
-      'El titulo del modal va en rojo oscuro',
+      /html\[data-theme="meridianobet"\] \.modal__card \{[^}]*color: var\(--brand-panel-ink\);/,
+      'La tarjeta hereda la tinta clara del panel',
     ],
     [
-      /html\[data-theme="meridianobet"\] \.modal__body h3 \{[^}]*color: var\(--brand-red-dark\);/,
-      'Los subtitulos ("COMO SE JUEGA", "PAGOS POR DISPERSION") van en rojo oscuro',
+      /html\[data-theme="meridianobet"\] \.modal__head h2 \{[^}]*color: var\(--brand-white\);/,
+      'El titulo del modal va en blanco puro sobre la banda oscura',
     ],
     [
-      /html\[data-theme="meridianobet"\] \.modal__body p,[\s\S]{0,120}?color: var\(--brand-ink\);/,
-      'Los parrafos y las listas van en tinta oscura',
+      /html\[data-theme="meridianobet"\] \.modal__body h3 \{[^}]*color: var\(--brand-panel-gold\);/,
+      'Los subtitulos ("COMO SE JUEGA", "PAGOS POR DISPERSION") van en el oro claro del panel',
     ],
     [
-      /html\[data-theme="meridianobet"\] \.paytable th \{[^}]*color: var\(--brand-grey-700\);/,
-      'La cabecera de la tabla va en gris profundo',
+      /html\[data-theme="meridianobet"\] \.modal__body p,[\s\S]{0,140}?color: var\(--brand-panel-ink\);/,
+      'Los parrafos y las listas van en la tinta clara del panel',
     ],
     [
-      /html\[data-theme="meridianobet"\] \.paytable td \{[^}]*color: var\(--brand-ink\);/,
-      'Las filas de simbolos van en tinta oscura',
+      /html\[data-theme="meridianobet"\] \.paytable th \{[^}]*color: var\(--brand-panel-dim\);/,
+      'La cabecera de la tabla va en el azul claro del panel',
     ],
     [
-      /html\[data-theme="meridianobet"\] \.paytable td:last-child \{[^}]*color: var\(--brand-red-dark\);/,
-      'Los multiplicadores destacan en rojo oscuro, no en oro palido',
+      /html\[data-theme="meridianobet"\] \.paytable td \{[^}]*color: var\(--brand-panel-ink\);/,
+      'Las filas de simbolos van en la tinta clara del panel',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.paytable td:last-child \{[^}]*color: var\(--brand-panel-gold\);/,
+      'Los multiplicadores destacan en oro claro, no en un tono palido',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.auth-form__label \{[^}]*color: var\(--brand-panel-dim\);/,
+      'La etiqueta del campo de sesion usa el azul claro del panel',
     ],
   ];
 
@@ -1711,15 +1719,36 @@ test('el modal de reglas se lee sobre la tarjeta clara del tema (contraste AA)',
     assert.match(theme, pattern, message);
   }
 
-  /* Nada de la tinta translucida del modal caramelo: era la que se perdia
-     sobre el blanco de la tarjeta del tema. */
+  /* Nada de la tinta translucida del modal caramelo: era la que se perdia sobre
+     el panel. */
   assert.doesNotMatch(
     theme,
     /#fff5c1|#ffe593|#fff0a0|#fff1a0|rgba\(255, 245, 255|rgba\(255, 239, 255|rgba\(255, 220, 246/,
     'El tema no debe reutilizar la tinta clara del modal caramelo'
   );
 
-  /* Contraste real (WCAG 2.1) de los pares que pinta el modal. */
+  /* Tampoco la hoja blanca ni su tinta oscura: el documento es la consola. */
+  assert.doesNotMatch(
+    theme,
+    /\.modal__card \{[^}]*background: linear-gradient\(165deg, var\(--brand-white\)/,
+    'La tarjeta del modal no vuelve a ser una hoja blanca'
+  );
+  assert.doesNotMatch(
+    theme,
+    /\.modal__card \{[^}]*color: var\(--brand-ink\);/,
+    'La tinta oscura de marca no vuelve a la tarjeta del modal'
+  );
+
+  /* Contraste real (WCAG 2.1) de los pares que pinta el modal. El fondo de
+     referencia se lee del propio degradado: el tramo MAS CLARO (la luz de
+     estadio de arriba) es el peor caso para una tinta clara, asi que si alguien
+     aclara el panel, el test lo detecta. */
+  const gradient = theme.match(
+    /linear-gradient\(160deg, (#[0-9a-f]{6}) 0%, (#[0-9a-f]{6}) 56%, (#[0-9a-f]{6}) 100%\)/i
+  );
+  assert.ok(gradient, 'La consola del modal debe declarar su degradado marino en tres paradas');
+  const panelTop = gradient[1];
+
   const token = (name) => {
     const match = theme.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6});`, 'i'));
     assert.ok(match, `Falta el token --${name} en theme.css`);
@@ -1738,13 +1767,10 @@ test('el modal de reglas se lee sobre la tarjeta clara del tema (contraste AA)',
   };
 
   const pairs = [
-    ['parrafos y filas sobre la tarjeta', token('brand-ink'), token('brand-white'), 7],
-    ['parrafos y filas sobre el pie gris', token('brand-ink'), token('brand-grey-100'), 7],
-    ['titulo y subtitulos', token('brand-red-dark'), token('brand-white'), 7],
-    ['titulo sobre la cabecera gris', token('brand-red-dark'), token('brand-grey-50'), 7],
-    ['multiplicadores sobre el pie gris', token('brand-red-dark'), token('brand-grey-100'), 7],
-    ['cabecera de la tabla', token('brand-grey-700'), token('brand-white'), 4.5],
-    ['etiqueta del campo de sesion', token('brand-grey-700'), token('brand-grey-100'), 4.5],
+    ['parrafos, listas y filas sobre el panel', token('brand-panel-ink'), panelTop, 7],
+    ['subtitulos y multiplicadores', token('brand-panel-gold'), panelTop, 7],
+    ['cabecera de la tabla y etiquetas', token('brand-panel-dim'), panelTop, 4.5],
+    ['titulo del modal', token('brand-white'), panelTop, 4.5],
   ];
 
   for (const [label, foreground, background, minimum] of pairs) {
