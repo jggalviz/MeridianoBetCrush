@@ -1669,6 +1669,93 @@ test('la capa de marca define la paleta Meridianobet (rojo, blanco, gris)', () =
   assert.match(theme, /--brand-red:\s*#[0-9a-f]{6};/i, '--brand-red debe ser un hex de 6 digitos');
 });
 
+test('el modal de reglas se lee sobre la tarjeta clara del tema (contraste AA)', () => {
+  const theme = read(THEME_PATH);
+
+  /* La tarjeta del tema es clara (blanco -> gris 100) mientras la capa base
+     escribe la tinta del modal morado (crema al 80-90 %). Sin el repintado de
+     `theme.css` el documento queda casi invisible, asi que se comprueba que
+     cada zona tenga su color y que el par texto/fondo supere el umbral. */
+  const expects = [
+    [
+      /html\[data-theme="meridianobet"\] \.modal__card \{[^}]*color: var\(--brand-ink\);/,
+      'La tarjeta hereda la tinta oscura de marca',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.modal__head h2 \{[^}]*color: var\(--brand-red-dark\);/,
+      'El titulo del modal va en rojo oscuro',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.modal__body h3 \{[^}]*color: var\(--brand-red-dark\);/,
+      'Los subtitulos ("COMO SE JUEGA", "PAGOS POR DISPERSION") van en rojo oscuro',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.modal__body p,[\s\S]{0,120}?color: var\(--brand-ink\);/,
+      'Los parrafos y las listas van en tinta oscura',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.paytable th \{[^}]*color: var\(--brand-grey-700\);/,
+      'La cabecera de la tabla va en gris profundo',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.paytable td \{[^}]*color: var\(--brand-ink\);/,
+      'Las filas de simbolos van en tinta oscura',
+    ],
+    [
+      /html\[data-theme="meridianobet"\] \.paytable td:last-child \{[^}]*color: var\(--brand-red-dark\);/,
+      'Los multiplicadores destacan en rojo oscuro, no en oro palido',
+    ],
+  ];
+
+  for (const [pattern, message] of expects) {
+    assert.match(theme, pattern, message);
+  }
+
+  /* Nada de la tinta translucida del modal caramelo: era la que se perdia
+     sobre el blanco de la tarjeta del tema. */
+  assert.doesNotMatch(
+    theme,
+    /#fff5c1|#ffe593|#fff0a0|#fff1a0|rgba\(255, 245, 255|rgba\(255, 239, 255|rgba\(255, 220, 246/,
+    'El tema no debe reutilizar la tinta clara del modal caramelo'
+  );
+
+  /* Contraste real (WCAG 2.1) de los pares que pinta el modal. */
+  const token = (name) => {
+    const match = theme.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6});`, 'i'));
+    assert.ok(match, `Falta el token --${name} en theme.css`);
+    return match[1];
+  };
+  const luminance = (hex) => {
+    const channels = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255);
+    const [r, g, b] = channels.map((value) =>
+      value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+    );
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (foreground, background) => {
+    const [light, dark] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+    return (light + 0.05) / (dark + 0.05);
+  };
+
+  const pairs = [
+    ['parrafos y filas sobre la tarjeta', token('brand-ink'), token('brand-white'), 7],
+    ['parrafos y filas sobre el pie gris', token('brand-ink'), token('brand-grey-100'), 7],
+    ['titulo y subtitulos', token('brand-red-dark'), token('brand-white'), 7],
+    ['titulo sobre la cabecera gris', token('brand-red-dark'), token('brand-grey-50'), 7],
+    ['multiplicadores sobre el pie gris', token('brand-red-dark'), token('brand-grey-100'), 7],
+    ['cabecera de la tabla', token('brand-grey-700'), token('brand-white'), 4.5],
+    ['etiqueta del campo de sesion', token('brand-grey-700'), token('brand-grey-100'), 4.5],
+  ];
+
+  for (const [label, foreground, background, minimum] of pairs) {
+    const ratio = contrast(foreground, background);
+    assert.ok(
+      ratio >= minimum,
+      `${label}: contraste ${ratio.toFixed(2)}:1, por debajo de ${minimum}:1`
+    );
+  }
+});
+
 test('la pastilla del multiplicador se pinta como una cuenta de rubi con volumen', () => {
   const css = read(STYLE_PATH);
   const theme = read(THEME_PATH);

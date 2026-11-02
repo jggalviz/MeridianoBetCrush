@@ -49,6 +49,17 @@ arriba, reflejo dorado al pie y filo dorado). Las casillas bajan a vidrio con
 alfa para que el panel se siga leyendo por detras y el filo blanco translucido
 mantiene separadas las 30 celdas.
 
+El modal de reglas y tabla de pagos es la unica superficie **clara** del tema:
+`theme.css` lo pinta de blanco a gris 100, asi que ahi tambien fija la tinta
+completa (titulo y subtitulos en rojo oscuro, parrafos y filas en
+`--brand-ink`, cabecera de la tabla en gris profundo y multiplicadores en rojo
+oscuro y negrita). La capa base los escribia en crema y dorado palido porque
+eran para el modal morado; sobre blanco se quedaban en ~1,6:1 y el texto casi no
+se distinguia. `test/frontendAssets.test.js` recalcula el contraste WCAG de esos
+pares y falla si alguien devuelve la tinta clara. Las dos tablas del documento
+tambien se comprimen por `clamp()` en `style.css` (cifras siempre en una linea,
+nombre del simbolo a dos) para que quepan en 320 px sin scroll horizontal.
+
 Consecuencia practica: los tokens de caramelo de `style.css`
 (`--candy-solid-body`, `--candy-solid-wash`, `--candy-rim`, `--candy-depth`,
 `--gbtn-*`) **ya no se ven** en la maqueta final: el arte ocupa su lugar. Por eso
@@ -221,7 +232,8 @@ backend).
    hay que actualizar esos valores en el test junto con `style.css`. El mismo test
    comprueba que `theme.css` siga siendo CSS plano, sin `!important`, con prefijo
    de tema y sin medidas.
-4. Revisar contraste de texto (WCAG AA) sobre blanco y sobre el rojo.
+4. Revisar contraste de texto (WCAG AA) sobre blanco y sobre el rojo. Los pares
+   del modal de reglas los recalcula `test/frontendAssets.test.js`.
 5. `npm start` + `/api/health` deben seguir mostrando `operator.mode =
    LOCAL_VIRTUAL_DEMO` y una ronda completa debe pagar igual que antes: el
    rebranding es solo presentacion.

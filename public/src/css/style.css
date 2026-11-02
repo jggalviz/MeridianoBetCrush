@@ -913,15 +913,21 @@ body.is-demo .balance__label::after { content: " · demo"; color: var(--mango); 
 
 .modal__body {
   padding: 16px 18px 22px;
+  /* El documento es largo (reglas + dos tablas): scrollea en vertical y, si una
+     tabla ancha no cabe (moviles de 320-360 px), lo hace en horizontal en vez
+     de recortarse contra el `overflow: hidden` de la tarjeta. */
   overflow-y: auto;
-  font-size: 13px;
-  line-height: 1.55;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  font-size: clamp(13px, 3.3vw, 14px);
+  line-height: 1.6;
   color: rgba(234, 255, 247, 0.9);
 }
 
 .modal__body h3 {
   margin: 18px 0 6px;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--mint);
@@ -935,15 +941,26 @@ body.is-demo .balance__label::after { content: " · demo"; color: var(--mango); 
 .paytable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  /* Seis columnas (simbolo + cinco tramos) dentro de una tarjeta de 620 px o del
+     ancho del movil: el cuerpo baja hasta 10,5 px y los iconos a 20 px para que
+     quepa a 320 px sin partir cifras. */
+  font-size: clamp(10.5px, 2.7vw, 12px);
   font-variant-numeric: tabular-nums;
 }
 
 .paytable th,
 .paytable td {
-  padding: 6px 8px;
+  padding: clamp(4px, 1.2vw, 6px) clamp(4px, 1.6vw, 8px);
   border-bottom: 1px solid rgba(120, 255, 214, 0.1);
   text-align: right;
+}
+
+/* Las cifras ("10.000×") no se parten nunca. El nombre del simbolo ("Balon de
+   futbol americano") si puede ir a dos lineas: es la unica columna que cede
+   ancho, y asi la tabla sigue cabiendo en un movil de 320 px. */
+.paytable th,
+.paytable td:not(:first-child) {
+  white-space: nowrap;
 }
 
 .paytable th { color: var(--ink-dim); font-weight: 600; }
@@ -1994,13 +2011,19 @@ body.is-demo .balance__label::after { color: #fff3a8; }
 .paytable__symbol {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  white-space: nowrap;
+  /* `min-width: 0` deja que el nombre envuelva dentro del `inline-flex` en vez
+     de empujar la tabla mas alla del ancho de la tarjeta. */
+  min-width: 0;
+  gap: clamp(5px, 1.4vw, 8px);
+  white-space: normal;
 }
 
 .paytable__icon {
-  width: 30px;
-  height: 30px;
+  /* El icono acompana a la cifra: 20 px en el movil mas estrecho y 30 px en
+     escritorio, para que la columna del simbolo no empuje a las de pagos. */
+  flex: 0 0 auto;
+  width: clamp(20px, 6vw, 30px);
+  height: clamp(20px, 6vw, 30px);
   object-fit: contain;
   filter: drop-shadow(0 3px 3px rgba(20, 1, 28, 0.4));
 }

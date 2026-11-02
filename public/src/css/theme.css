@@ -26,7 +26,9 @@
      casillas) y es el unico color de las nueve pelotas, que comparten bloque.
    - Boton "Fichas de Prueba", modal y anillo de foco. La cabecera no lleva
      marca ni fondo (solo los controles), asi que arriba no hay nada que
-     repintar.
+     repintar. La tarjeta del modal es CLARA, asi que ahi esta hoja tambien fija
+     la tinta: titulo, subtitulos, parrafos y tabla de pagos en oscuro (la capa
+     base los escribia en crema, para el modal morado).
    - Botones secundarios y capsulas de valor (audio/ayuda, `100x`, giros de
      AUTO, cierre del modal): comparten la MISMA pastilla que los pulsadores
      del juego (cara roja, filo dorado y sombra de contacto) para que la
@@ -378,6 +380,17 @@ html[data-theme="meridianobet"] .modal__head .icon-btn:hover {
 
 /* --------------------------------------------------------------------------
    5. Modal de reglas y anillo de foco
+   --------------------------------------------------------------------------
+   La tarjeta del tema es CLARA (blanco -> gris 100) y la capa base escribe su
+   tinta para el modal caramelo: crema al 80-90 % sobre morado. Sobre blanco esa
+   tinta se queda en ~1,6:1 y el texto casi desaparece, asi que aqui se fija la
+   tinta completa del documento (titulo, subtitulos, parrafos, listas, `code`,
+   tabla de pagos y formulario de sesion).
+
+   Pares texto/fondo y contraste resultante (el test los recalcula con la
+   formula de WCAG): tinta #1b1e23 sobre blanco 16,7:1, rojo oscuro #8f0a1f
+   sobre blanco 9,4:1 y gris profundo #4a505b sobre blanco 8,1:1. Todos pasan
+   del 7:1 de AAA para texto normal; el test exige 4,5:1 (AA) como minimo.
    -------------------------------------------------------------------------- */
 
 html[data-theme="meridianobet"] .modal__backdrop {
@@ -388,6 +401,104 @@ html[data-theme="meridianobet"] .modal__card {
   border-color: var(--brand-grey-200);
   background: linear-gradient(165deg, var(--brand-white), var(--brand-grey-100));
   box-shadow: 0 30px 70px rgba(10, 12, 16, 0.45);
+  /* Tinta heredada por toda la tarjeta: cualquier nodo sin regla propia (un
+     `<strong>` suelto, el texto de un `<p>` generado por el JS) ya sale oscuro
+     en vez de heredar la crema del `body`. */
+  color: var(--brand-ink);
+}
+
+/* Cabecera: el titulo de la ventana, en rojo corporativo oscuro sobre gris 50. */
+html[data-theme="meridianobet"] .modal__head {
+  border-bottom-color: var(--brand-grey-200);
+  background: var(--brand-grey-50);
+}
+
+html[data-theme="meridianobet"] .modal__head h2 {
+  color: var(--brand-red-dark);
+  text-shadow: none;
+}
+
+/* Cuerpo del documento. El `h3` es el subtitulo que se perdia ("COMO SE JUEGA",
+   "PAGOS POR DISPERSION (x APUESTA)"). */
+html[data-theme="meridianobet"] .modal__body,
+html[data-theme="meridianobet"] .modal__body p,
+html[data-theme="meridianobet"] .modal__body ul,
+html[data-theme="meridianobet"] .modal__body li {
+  color: var(--brand-ink);
+}
+
+html[data-theme="meridianobet"] .modal__body h3 {
+  color: var(--brand-red-dark);
+  font-weight: 700;
+  text-shadow: none;
+}
+
+html[data-theme="meridianobet"] .modal__body strong {
+  color: var(--brand-red-dark);
+  font-weight: 800;
+}
+
+html[data-theme="meridianobet"] .modal__body code {
+  background: var(--brand-red-tint);
+  color: var(--brand-red-dark);
+}
+
+/* Tabla de pagos: cabecera en gris profundo, filas en tinta de marca y los
+   multiplicadores (ultima columna) en rojo oscuro y negrita, que es el dato que
+   se busca de un vistazo. */
+html[data-theme="meridianobet"] .paytable th,
+html[data-theme="meridianobet"] .paytable td {
+  border-bottom-color: var(--brand-grey-200);
+}
+
+html[data-theme="meridianobet"] .paytable th {
+  color: var(--brand-grey-700);
+  font-weight: 700;
+}
+
+html[data-theme="meridianobet"] .paytable td {
+  color: var(--brand-ink);
+}
+
+html[data-theme="meridianobet"] .paytable td:last-child {
+  color: var(--brand-red-dark);
+  font-weight: 800;
+}
+
+html[data-theme="meridianobet"] .paytable__symbol {
+  color: var(--brand-ink);
+  font-weight: 600;
+}
+
+/* Zebra tenue: sigue la fila sin ensuciar el contraste del texto. */
+html[data-theme="meridianobet"] .paytable tbody tr:nth-child(even) {
+  background: rgba(27, 30, 35, 0.04);
+}
+
+/* El icono del simbolo conserva su sombra, pero en tinta oscura: sobre gris
+   claro la sombra morada de la capa base se veia como un cerco sucio. */
+html[data-theme="meridianobet"] .paytable__icon {
+  filter: drop-shadow(0 2px 2px rgba(27, 30, 35, 0.25));
+}
+
+/* Puerta de sesion: comparte tarjeta, asi que la etiqueta tambien se pasa a
+   gris profundo y el campo se invierte a blanco con tinta oscura. */
+html[data-theme="meridianobet"] .auth-form__label {
+  color: var(--brand-grey-700);
+}
+
+html[data-theme="meridianobet"] .auth-form__input {
+  border-color: var(--brand-grey-200);
+  background: var(--brand-white);
+  color: var(--brand-ink);
+}
+
+html[data-theme="meridianobet"] .auth-form__input::placeholder {
+  color: var(--brand-grey-700);
+}
+
+html[data-theme="meridianobet"] .auth-form__input:focus {
+  outline-color: var(--brand-red);
 }
 
 html[data-theme="meridianobet"] :focus-visible {
