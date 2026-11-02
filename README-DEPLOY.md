@@ -370,7 +370,7 @@ No es necesario para un despliegue normal: los WebP/WOFF2/PNG ya están versiona
 | `npm run build:desktop-art` | `d1.png`, `d3.png`, `d5.png` | `d1.webp`, `d3.webp`, `d5.webp` |
 | `npm run build:bg` | `reino_de_caramelos_y_arcoiris.png`, `avenida_fantastica_reino_caramelos.png` | `reino_de_caramelos_y_arcoiris.webp`, `avenida_fantastica_reino_caramelos.webp` |
 | `npm run build:logo` | `pana_crush_ANIMACION-LOGO_final.gif` | `PANA-CRUSH-LOGO.webp` |
-| `npm run build:win` | `victoria_dulce.png` | `victoria_dulce.webp` |
+| `npm run build:win` | `victoria_deportiva.png` | `victoria_deportiva.webp` |
 
 - Requieren `sharp` (ya está en `devDependencies`) y son **idempotentes**.
 - Los PNG maestros de `design/` **no se publican**.
@@ -1183,7 +1183,7 @@ Checklist manual:
 | Conexión | Estado “Conectando…” desaparece | Sesión demo automática o sesión real |
 | Saldo | “Fichas de Prueba” muestra 1.000,00 VES (si demo activo) | Formato correcto y moneda correcta |
 | Giro | Pulsar SPIN / barra espaciadora | Animación, HUD actualizado y saldo coherente |
-| Victoria | Cualquier premio > 0 | Se abre el overlay; los premios grandes muestran más monedas/rayos y duran más |
+| Victoria | Cualquier premio > 0 | Se abre el overlay; los premios grandes muestran más pelotas/rayos y duran más |
 | Cierre del overlay | Clic, toque o Espacio/Enter | Se cierra sin lanzar un giro accidental |
 | Controles | Apuesta ±, MAX, AUTO y Tropical Fever | Responden y respetan el saldo/límites |
 | Responsive | 360×640, 390×844, 768×1024, 1440×900, 1920×1080 | Sin scrollbars, sin botones cortados, sin solapes |

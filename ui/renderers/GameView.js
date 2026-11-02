@@ -47,20 +47,20 @@ const ROWS = GRID.rows;
 const COLS = GRID.cols;
 
 /* Overlay de victoria: cartel WIN con rayos, importe en conteo rapido y lluvia
-   de monedas por los laterales. Cualquier victoria abre la capa; la intensidad
+   de pelotas por los laterales. Cualquier victoria abre la capa; la intensidad
    (destello, lluvia, entrada y permanencia) escala con `win / bet`. */
-const WIN_ART_SRC = '/src/assets/victoria_dulce.webp';
+const WIN_ART_SRC = '/src/assets/victoria_deportiva.webp';
 const WIN_CLOSE_MS = 240;
 
 /* Perfiles de intensidad. `low` cubre los premios que no devuelven la apuesta
    (< 1x), `mid` la banda 1-10x y `high` los niveles big/mega/epic (> 10x).
-   `power` alimenta el destello de `fx.flash`, `coins` la lluvia lateral,
+   `power` alimenta el destello de `fx.flash`, `balls` la lluvia lateral,
    `rollMs` el conteo del importe y `durationMs` el autocierre (el toque o
    Escape siguen cerrando antes, en cualquier perfil). */
 const WIN_PROFILES = Object.freeze({
   low: Object.freeze({
     name: 'low',
-    coins: 8,
+    balls: 8,
     durationMs: 1700,
     rollMs: 450,
     power: 0.18,
@@ -68,7 +68,7 @@ const WIN_PROFILES = Object.freeze({
   }),
   mid: Object.freeze({
     name: 'mid',
-    coins: 22,
+    balls: 22,
     durationMs: 3000,
     rollMs: 900,
     power: 0.5,
@@ -76,7 +76,7 @@ const WIN_PROFILES = Object.freeze({
   }),
   high: Object.freeze({
     name: 'high',
-    coins: 42,
+    balls: 42,
     durationMs: 4200,
     rollMs: 900,
     power: 0.8,
@@ -88,9 +88,9 @@ const WIN_PROFILES = Object.freeze({
    el cartel. big/mega/epic comparten perfil `high` y solo cambian el tiempo. */
 const WIN_HIGH_MS = Object.freeze({ big: 3800, mega: 4200, epic: 4600 });
 
-/* Por debajo de este ratio el perfil `low` no lanza monedas: el cartel y el
+/* Por debajo de este ratio el perfil `low` no lanza pelotas: el cartel y el
    importe ya cuentan la victoria sin poblar la capa de particulas. */
-const WIN_LOW_MIN_RATIO_COINS = 0.2;
+const WIN_LOW_MIN_RATIO_BALLS = 0.2;
 
 export class Ui {
   constructor() {
@@ -557,8 +557,8 @@ export class Ui {
    *
    *   < 1x  -> pantalla de victoria sutil: sin giro de rayos, lluvia corta (o
    *           ninguna por debajo de 0,2x), entrada breve y 1,7 s de velo.
-   *   1-10x -> pantalla estandar: 22 monedas, rayos girando y 3 s.
-   *   big   -> perfil alto: 42 monedas, rebote marcado y 3,8 s.
+   *   1-10x -> pantalla estandar: 22 pelotas, rayos girando y 3 s.
+   *   big   -> perfil alto: 42 pelotas, rebote marcado y 3,8 s.
    *   mega  -> lo mismo con destello casi pleno y 4,2 s.
    *   epic  -> perfil alto completo, 4,6 s y temblor del marco.
    *
@@ -586,7 +586,7 @@ export class Ui {
       if (this.refs.banner) this.refs.banner.classList.remove('is-visible');
     } else if (key === 'mega' || key === 'epic') {
       /* Respaldo sin capa montada: se mantiene el cartel 3D historico. */
-      this.fx.coinRain({ count: profile.coins });
+      this.fx.ballRain({ count: profile.balls });
       const card = this.fx.mega(key === 'epic' ? '¡ÉPICA GANANCIA!' : '¡MEGA GANANCIA!', amountText);
       if (card && this.refs.banner) this.refs.banner.classList.remove('is-visible');
     }
@@ -617,8 +617,8 @@ export class Ui {
    *
    *   < 1x   -> `low` : lluvia corta (ninguna por debajo de 0,2x), rayos
    *                    quietos y autocierre en 1,7 s.
-   *   1-10x  -> `mid` : 22 monedas, rayos girando, entrada estandar y 3 s.
-   *   >= 10x -> `high`: 42 monedas, rebote marcado y 3,8-4,6 s segun el nivel.
+   *   1-10x  -> `mid` : 22 pelotas, rayos girando, entrada estandar y 3 s.
+   *   >= 10x -> `high`: 42 pelotas, rebote marcado y 3,8-4,6 s segun el nivel.
    *
    * Sin `betCents` no se puede medir el ratio; el importe sigue siendo
    * autoritativo, asi que se usa `low` en lugar de prometer una intensidad que
@@ -627,7 +627,7 @@ export class Ui {
    * @param {string} key nivel normalizado
    * @param {number|null} cents importe ganado
    * @param {number|null} betCents apuesta de la ronda
-   * @returns {{name: string, coins: number, durationMs: number, rollMs: number, power: number, rays: string}}
+   * @returns {{name: string, balls: number, durationMs: number, rollMs: number, power: number, rays: string}}
    */
   resolveWinProfile_(key, cents, betCents) {
     if (key !== 'win') {
@@ -647,10 +647,10 @@ export class Ui {
 
     /* Sin importe no hay nada que llueva; con importe pero por debajo de 0,2x
        se mantiene la lluvia corta del perfil bajo. */
-    const sparse = !hasWon || (hasBet && ratio < WIN_LOW_MIN_RATIO_COINS);
+    const sparse = !hasWon || (hasBet && ratio < WIN_LOW_MIN_RATIO_BALLS);
     return {
       ...WIN_PROFILES.low,
-      coins: sparse ? 0 : WIN_PROFILES.low.coins
+      balls: sparse ? 0 : WIN_PROFILES.low.balls
     };
   }
 
@@ -658,12 +658,12 @@ export class Ui {
    * Abre la pantalla de victoria con el importe del payload.
    *
    * Se abre tambien con `prefers-reduced-motion`: en ese caso no hay lluvia de
-   * monedas y la cifra aparece ya resuelta, porque el CSS apaga rayos, entrada
+   * pelotas y la cifra aparece ya resuelta, porque el CSS apaga rayos, entrada
    * y latido. Devuelve `false` solo si la capa no esta montada, para que
    * `celebrate` pueda usar el respaldo del cartel 3D.
    *
    * El perfil se recibe ya resuelto (`resolveWinProfile_`) y decide la clase
-   * `is-low`/`is-mid`/`is-high`, las monedas, el conteo y el autocierre.
+   * `is-low`/`is-mid`/`is-high`, las pelotas, el conteo y el autocierre.
    *
    * @param {string} level clave de `winLevel`
    * @param {string} amountText importe ya formateado (respaldo sin centimos)
@@ -694,9 +694,9 @@ export class Ui {
     void node.offsetWidth; // reinicia la entrada elastica en cada victoria
 
     this.rollWinAmount_(cents, amountText, tier.rollMs);
-    if (this.fx && !REDUCED_MOTION && tier.coins > 0) {
-      this.fx.coinRain({
-        count: tier.coins,
+    if (this.fx && !REDUCED_MOTION && tier.balls > 0) {
+      this.fx.ballRain({
+        count: tier.balls,
         host: this.refs.winRain,
         zone: 'sides'
       });

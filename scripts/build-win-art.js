@@ -6,22 +6,29 @@
  *
  *   npm run build:win
  *
- * El maestro vive en `design/victoria_dulce.png` (antes `¡Victoria dulce!.png`):
- * 1536 x 1024 px y alfa real (las esquinas son transparentes). Igual que el
- * resto del arte, se archiva fuera de `public/` porque todo lo que hay en
- * `public/src/**` se publica en el CDN y el PNG pesa 2,7 MB.
+ * El maestro vive en `design/victoria_deportiva.png` (el PNG
+ * `Victoria deportiva brillante.png`): 1774 x 887 px y alfa real (las esquinas
+ * son transparentes). Igual que el resto del arte, se archiva fuera de
+ * `public/` porque todo lo que hay en `public/src/**` se publica en el CDN y el
+ * PNG pesa 1,8 MB.
  *
- * El script escribe `public/src/assets/victoria_dulce.webp` con este contrato:
+ * El script escribe `public/src/assets/victoria_deportiva.webp` con este
+ * contrato:
  *   - WebP con alfa (VP8X + ALPH + VP8) a calidad 90. `alphaQuality: 100`
  *     conserva el canal alfa sin perdida: el recorte del cartel no gana halos
  *     blancos ni escalones en el borde de las letras.
- *   - 1152 x 768 px (75 % del maestro, misma relacion 3:2). El CSS no pinta el
- *     arte por encima de 640 px CSS, asi que 1152 cubre pantallas retina
- *     (1,8x) sin cargar los ~573 KB del lienzo completo.
- *   - Antes de reescalar se recorta el alfa vacio si el maestro lo tuviera
- *     (`trim`): hoy no hay margen que quitar, pero un arte nuevo con aire
- *     transparente no se publica con ese peso muerto.
- *   - Tope de peso: 450 KB (el WebP actual ronda los 423 KB).
+ *   - 1280 px de ancho (1280 x 693 con la caja recortada). El CSS no pinta el
+ *     arte por encima de 700 px CSS, asi que 1280 cubre pantallas retina
+ *     (1,8x) sin cargar los ~317 KB de un lienzo mayor.
+ *   - Antes de reescalar se recorta el alfa vacio (`trim`). Este maestro trae
+ *     aire transparente a los lados (la caja util mide 1621 x 878), asi que el
+ *     cartel se publica pegado a su contenido en lugar de arrastrar margen
+ *     muerto que el CSS tendria que escalar.
+ *   - Tope de peso: 400 KB (el WebP actual ronda los 317 KB).
+ *
+ * La relacion de aspecto se valida contra la caja recortada, que es la que se
+ * reescala: comparar contra el lienzo original fallaria en cuanto `trim` quita
+ * margen asimetrico.
  *
  * Es idempotente: misma entrada y misma calidad -> mismos bytes.
  */
@@ -31,15 +38,15 @@ const path = require('node:path');
 const sharp = require('sharp');
 
 const ROOT = path.join(__dirname, '..');
-const SOURCE = path.join(ROOT, 'design', 'victoria_dulce.png');
-const TARGET = path.join(ROOT, 'public', 'src', 'assets', 'victoria_dulce.webp');
-const DEPLOY = path.join(ROOT, '.vercel', 'output', 'static', 'src', 'assets', 'victoria_dulce.webp');
+const SOURCE = path.join(ROOT, 'design', 'victoria_deportiva.png');
+const TARGET = path.join(ROOT, 'public', 'src', 'assets', 'victoria_deportiva.webp');
+const DEPLOY = path.join(ROOT, '.vercel', 'output', 'static', 'src', 'assets', 'victoria_deportiva.webp');
 
-// El arte se pinta como maximo a 640 px CSS: 1152 px cubre retina sin inflar
-// la descarga (573 KB a lienzo completo contra 423 KB aqui).
-const TARGET_WIDTH = 1152;
+// El arte se pinta como maximo a 700 px CSS: 1280 px cubre retina (1,8x) sin
+// inflar la descarga (370 KB a 1420 px contra 317 KB aqui).
+const TARGET_WIDTH = 1280;
 const QUALITY = Number(process.env.WIN_QUALITY || 90);
-const MAX_BYTES = 450 * 1024;
+const MAX_BYTES = 400 * 1024;
 
 const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
 
@@ -59,8 +66,9 @@ const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
     );
   }
 
-  // Recorte del alfa vacio. Hoy es un no-op (el arte toca los cuatro bordes),
-  // pero deja el pipeline preparado para un maestro con margen transparente.
+  // Recorte del alfa vacio. Este maestro trae aire transparente a los lados
+  // (1621 x 878 utiles de 1774 x 887), asi que el recorte no es cosmetico:
+  // evita publicar margen muerto que el CSS tendria que escalar.
   const trimmed = await sharp(SOURCE)
     .ensureAlpha()
     .trim({ threshold: 1 })
@@ -68,6 +76,8 @@ const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
   const crop = trimmed.info.trimOffsetLeft || trimmed.info.trimOffsetTop
     ? `${trimmed.info.trimOffsetLeft},${trimmed.info.trimOffsetTop}`
     : null;
+  const cropWidth = trimmed.info.width || master.width;
+  const cropHeight = trimmed.info.height || master.height;
 
   const webp = await sharp(trimmed.data)
     .resize({ width: TARGET_WIDTH, fit: 'inside', withoutEnlargement: true })
@@ -89,13 +99,13 @@ const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
   if (out.width !== TARGET_WIDTH) {
     throw new Error(
       `El WebP mide ${out.width}px de ancho y el contrato exige ${TARGET_WIDTH}px ` +
-        '(ver cabecera: es el 75 % del maestro)'
+        '(ver cabecera: 1280 px cubren retina a 700 px CSS)'
     );
   }
-  if (Math.abs(out.width / out.height - master.width / master.height) > 0.002) {
+  if (Math.abs(out.width / out.height - cropWidth / cropHeight) > 0.002) {
     throw new Error(
-      `El WebP mide ${out.width}x${out.height} y rompe la relacion del maestro ` +
-        `${master.width}x${master.height}: el cartel se deformaria`
+      `El WebP mide ${out.width}x${out.height} y rompe la relacion de la caja recortada ` +
+        `${cropWidth}x${cropHeight} (maestro ${master.width}x${master.height}): el cartel se deformaria`
     );
   }
   if (webp.length >= MAX_BYTES) {
@@ -113,7 +123,7 @@ const kb = (n) => `${(n / 1024).toFixed(1)} kB`;
 
   console.log(
     `origen  ${path.relative(ROOT, SOURCE)}  ${master.width}x${master.height}  ` +
-      `${kb(fs.statSync(SOURCE).size)}${crop ? `  (alfa recortado en ${crop})` : '  (alfa ya ajustado)'}`
+      `${kb(fs.statSync(SOURCE).size)}${crop ? `  (alfa recortado en ${crop} -> ${cropWidth}x${cropHeight})` : '  (alfa ya ajustado)'}`
   );
   console.log(
     `salida  ${path.relative(ROOT, TARGET)}  ${out.width}x${out.height}  ` +

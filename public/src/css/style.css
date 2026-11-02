@@ -7550,22 +7550,44 @@ body.is-demo .machine__side .controls .balance::after {
   100% { opacity: 0; }
 }
 
-/* Lluvia de monedas y caramelos (MEGA). Cae en linea recta con deriva y giro:
-   una sola capa compuesta por elemento, sin sombras ni filtros por frame. */
-.fx__coin {
+/* Lluvia de pelotas deportivas (MEGA y pantalla de victoria). Cada pelota es
+   un PNG de `assets/slot` (s1 .. s9) dentro de una caja cuadrada, y cae en
+   linea recta con deriva y giro: una sola capa compuesta por elemento, sin
+   sombras ni filtros por frame.
+
+   El glifo del simbolo queda debajo de la imagen como respaldo: si un PNG no
+   llega, la casilla muestra la pelota del motor en lugar de un hueco. */
+.fx__ball {
   position: fixed;
   left: 0;
   top: 0;
-  font-size: var(--s, 26px);
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  width: var(--s, 30px);
+  height: var(--s, 30px);
   opacity: 0;
   transform: translate3d(var(--x, 0), -14vh, 0);
-  animation: coin-fall var(--t, 2000ms) var(--d, 0ms) cubic-bezier(0.32, 0.06, 0.66, 0.98) both;
+  animation: ball-fall var(--t, 2000ms) var(--d, 0ms) cubic-bezier(0.32, 0.06, 0.66, 0.98) both;
   will-change: transform, opacity;
   pointer-events: none;
 }
 
-@keyframes coin-fall {
+/* Glifo y pelota comparten la misma celda del grid. */
+.fx__ball > * { grid-area: 1 / 1; }
+
+.fx__ball-glyph {
+  font-size: calc(var(--s, 30px) * 0.78);
+  line-height: 1;
+}
+
+.fx__ball-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+@keyframes ball-fall {
   0% {
     opacity: 0;
     transform: translate3d(var(--x, 0), -14vh, 0) rotate(var(--r0, 0deg));
@@ -7674,7 +7696,7 @@ body.is-demo .machine__side .controls .balance::after {
 /* --------------------------------------------------------------------------
    Pantalla de victoria (WIN overlay)
    --------------------------------------------------------------------------
-   Velo a pantalla completa con el cartel WIN, rayos girando y monedas cayendo
+   Velo a pantalla completa con el cartel WIN, rayos girando y pelotas cayendo
    por los laterales. Aparece en cualquier victoria y se cierra solo (1,7 s en
    premios bajos, 3 s en la banda 1-10x, 3,8-4,6 s en big/mega/epic) o con un
    toque, Escape o un giro nuevo. La intensidad la elige `uiManager` con
@@ -7686,7 +7708,7 @@ body.is-demo .machine__side .controls .balance::after {
        filtros ni sombras por frame.
      - El velo queda por encima de `.fx` (55) y por debajo del modal (60) y de
        los toasts (70): nunca tapa un mensaje del sistema.
-     - Las monedas reutilizan `.fx__coin` con un `host` propio: caen dentro del
+     - Las pelotas reutilizan `.fx__ball` con un `host` propio: caen dentro del
        recorte del velo y se retiran con el.
    -------------------------------------------------------------------------- */
 
@@ -7742,7 +7764,7 @@ body.is-demo .machine__side .controls .balance::after {
   to { transform: rotate(360deg); }
 }
 
-/* Lluvia de monedas del overlay: recibe los `.fx__coin` de `fx.coinRain()`. */
+/* Lluvia de pelotas del overlay: recibe los `.fx__ball` de `fx.ballRain()`. */
 .win__rain {
   position: absolute;
   inset: 0;
@@ -7769,9 +7791,15 @@ body.is-demo .machine__side .controls .balance::after {
   will-change: transform;
 }
 
+/* Cartel apaisado (1280 x 693, relacion 1,85:1). El ancho lo limitan tres
+   techos en este orden: el tamano de diseno en escritorio (700 px), el ancho
+   util del movil (92vw) y, en pantallas apaisadas o bajas, el alto disponible
+   (54vh x 1,85): el cartel nunca empuja el importe ni el aviso fuera del velo.
+   El `width`/`height` del HTML ya reserva la caja, asi que la primera pintura
+   no salta. */
 .win__art {
   display: block;
-  width: min(640px, 86vw, calc(58vh * 1.5));
+  width: min(700px, 92vw, calc(54vh * 1.85));
   height: auto;
   transform-origin: 50% 60%;
   animation: win-pop 0.66s cubic-bezier(0.2, 1.45, 0.36, 1) both;
@@ -7844,10 +7872,10 @@ body.is-demo .machine__side .controls .balance::after {
    `is-low` (< 1x): el velo sigue siendo el mensaje del premio, pero mas ligero
    y corto. Rayos quietos y casi transparentes, sin flotacion ni latido, y una
    entrada breve sin rebote: el giro siguiente no espera.
-   `is-mid` (1-10x): sin reglas extra, usa el diseno base (22 monedas, rayos
+   `is-mid` (1-10x): sin reglas extra, usa el diseno base (22 pelotas, rayos
    girando 24 s, entrada `win-pop` y 3 s de permanencia).
    `is-high` (> 10x): el mismo diseno con un rebote mas marcado; la lluvia
-   completa (42 monedas) y la permanencia los pone `uiManager`.
+   completa (42 pelotas) y la permanencia los pone `uiManager`.
    -------------------------------------------------------------------------- */
 
 .win.is-low {
@@ -7923,7 +7951,7 @@ body.is-demo .machine__side .controls .balance::after {
 
 /* Con movimiento reducido la capa sigue abriendose (es el mensaje visual del
    premio) pero sin rayos girando, flotacion, latido ni entrada: el cartel y el
-   importe aparecen ya resueltos y `uiManager` no lanza monedas. Las reglas de
+   importe aparecen ya resueltos y `uiManager` no lanza pelotas. Las reglas de
    perfil tienen mas especificidad que las base, asi que se repiten aqui (y al
    ir despues en el archivo ganan tambien en cascada). */
 @media (prefers-reduced-motion: reduce) {

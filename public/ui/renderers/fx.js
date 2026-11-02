@@ -16,10 +16,17 @@
  *   - Con `prefers-reduced-motion` no se crea ninguna particula.
  */
 
-const SPARK_COLORS = ['#fff6b0', '#ffd35c', '#ff9ad8', '#8ce9ff', '#ffb072'];
-const COIN_FACES = ['🪙', '🍬', '🍭', '💎'];
+import { SYMBOLS } from '../lib/format.js';
 
-/** Presupuesto de nodos simultaneos de la capa (chispas + monedas + cartel). */
+const SPARK_COLORS = ['#fff6b0', '#ffd35c', '#ff9ad8', '#8ce9ff', '#ffb072'];
+
+/* Municion de la lluvia: los nueve balones del tablero (`assets/slot`). Se
+   reutiliza el mapa de simbolos para no duplicar rutas y para que la victoria
+   caiga con el mismo arte que el jugador acaba de ver en la rejilla. */
+const BALL_FACES = Object.freeze(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']
+  .map((key) => SYMBOLS[key]));
+
+/** Presupuesto de nodos simultaneos de la capa (chispas + pelotas + cartel). */
 const NODE_BUDGET = 120;
 
 const CAN_ANIMATE = typeof window !== 'undefined'
@@ -170,7 +177,13 @@ export function createFx() {
   }
 
   /**
-   * Lluvia de monedas y caramelos.
+   * Lluvia de pelotas deportivas.
+   *
+   * Cada particula es uno de los nueve balones del tablero (`assets/slot`),
+   * elegido al azar: la victoria se celebra con el mismo arte que el jugador
+   * acaba de ver en la rejilla y no con caramelos. El glifo del simbolo se
+   * pinta debajo de la imagen como respaldo, asi que un PNG que no llega deja
+   * una pelota del motor en lugar de un hueco.
    *
    * Por defecto cae por toda la pantalla sobre la capa `#fx` (MEGA WIN). El
    * overlay de victoria pasa su propio `host` y `zone: 'sides'` para que la
@@ -179,28 +192,43 @@ export function createFx() {
    *
    * @param {{count?: number, host?: Element|null, zone?: 'full'|'sides'}} [options]
    */
-  function coinRain({ count = 40, host = null, zone = 'full' } = {}) {
+  function ballRain({ count = 40, host = null, zone = 'full' } = {}) {
     if (!CAN_ANIMATE || document.hidden) return;
     const target = host || ensureLayer();
     const total = Math.min(count, Math.max(0, NODE_BUDGET - target.childElementCount));
     if (total <= 0) return;
 
     for (let i = 0; i < total; i += 1) {
+      const face = pick(BALL_FACES);
       const left = i % 2 === 0;
       const el = document.createElement('span');
-      el.className = 'fx__coin';
-      el.textContent = pick(COIN_FACES);
+      el.className = 'fx__ball';
+
+      /* Dos hijos en la misma celda: el glifo debajo, la pelota encima. */
+      const glyph = document.createElement('span');
+      glyph.className = 'fx__ball-glyph';
+      glyph.textContent = face.glyph;
+
+      const img = document.createElement('img');
+      img.className = 'fx__ball-img';
+      img.src = face.image;
+      img.alt = '';
+      img.decoding = 'async';
+      img.draggable = false;
+      img.addEventListener('error', () => img.remove(), { once: true });
+
+      el.append(glyph, img);
       el.style.setProperty(
         '--x',
         `${fixed(zone === 'sides' ? (left ? rand(-4, 14) : rand(86, 104)) : rand(-4, 102))}vw`
       );
       /* En los laterales la deriva entra hacia el centro: la cascada se lee
-         como un marco de monedas y no como una cortina uniforme. */
+         como un marco de pelotas y no como una cortina uniforme. */
       el.style.setProperty(
         '--drift',
         `${fixed(zone === 'sides' ? (left ? rand(1, 7) : rand(-7, -1)) : rand(-8, 8))}vw`
       );
-      el.style.setProperty('--s', `${Math.round(rand(18, 40))}px`);
+      el.style.setProperty('--s', `${Math.round(rand(22, 46))}px`);
       el.style.setProperty('--r0', `${Math.round(rand(-80, 80))}deg`);
       el.style.setProperty('--r1', `${Math.round(rand(300, 900))}deg`);
       el.style.setProperty('--t', `${Math.round(rand(1500, 2800))}ms`);
@@ -244,6 +272,6 @@ export function createFx() {
     return card;
   }
 
-  return { clear, sparkBurst, flash, coinRain, mega };
+  return { clear, sparkBurst, flash, ballRain, mega };
 }
 

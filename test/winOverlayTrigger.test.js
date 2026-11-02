@@ -6,9 +6,11 @@
  * Regla del cliente: cualquier victoria valida (importe > 0) abre la capa, y el
  * perfil de intensidad se elige por `win / bet`:
  *
- *   low  (< 1x)   -> 8 monedas (0 por debajo de 0,2x), rayos quietos, 1,7 s;
- *   mid  (1-10x)  -> 22 monedas, rayos girando, 3 s;
- *   high (>10x)   -> 42 monedas, rebote marcado, 3,8-4,6 s segun el nivel.
+ *   low  (< 1x)   -> 8 pelotas (0 por debajo de 0,2x), rayos quietos, 1,7 s;
+ *   mid  (1-10x)  -> 22 pelotas, rayos girando, 3 s;
+ *   high (>10x)   -> 42 pelotas, rebote marcado, 3,8-4,6 s segun el nivel.
+ *
+ * La lluvia son los balones del tablero (`fx.ballRain`), no caramelos.
  *
  * Se importa el modulo ESM de produccion: `Ui` no toca el DOM en el constructor.
  */
@@ -54,7 +56,7 @@ test('el perfil escala con el ratio: low < 1x, mid 1-10x y high >= 10x', async (
   // Bajo: sutil y rapido. Por debajo de 0,2x ni siquiera llueve.
   const tiny = ui.resolveWinProfile_('win', 5, 100);
   assert.equal(tiny.name, 'low');
-  assert.equal(tiny.coins, 0, 'un 0,05x no debe llenar la capa de monedas');
+  assert.equal(tiny.balls, 0, 'un 0,05x no debe llenar la capa de pelotas');
   assert.equal(tiny.durationMs, 1700);
   assert.equal(tiny.rollMs, 450);
   assert.equal(tiny.rays, 'soft');
@@ -62,12 +64,12 @@ test('el perfil escala con el ratio: low < 1x, mid 1-10x y high >= 10x', async (
 
   const fractional = ui.resolveWinProfile_('win', 50, 100);
   assert.equal(fractional.name, 'low');
-  assert.equal(fractional.coins, 8);
+  assert.equal(fractional.balls, 8);
 
-  // Medio: el diseno estandar de 22 monedas y 3 s.
+  // Medio: el diseno estandar de 22 pelotas y 3 s.
   const even = ui.resolveWinProfile_('win', 100, 100);
   assert.equal(even.name, 'mid');
-  assert.equal(even.coins, 22);
+  assert.equal(even.balls, 22);
   assert.equal(even.durationMs, 3000);
   assert.equal(even.rollMs, 900);
   assert.equal(even.rays, 'full');
@@ -78,13 +80,13 @@ test('el perfil escala con el ratio: low < 1x, mid 1-10x y high >= 10x', async (
   // Alto: la frontera de 10x y los niveles que ya calcula `winLevel`.
   const ten = ui.resolveWinProfile_('win', 1000, 100);
   assert.equal(ten.name, 'high');
-  assert.equal(ten.coins, 42);
+  assert.equal(ten.balls, 42);
   assert.equal(ten.durationMs, 3800);
   assert.ok(ten.power >= 0.8);
 
   const big = ui.resolveWinProfile_('big', 1500, 100);
   assert.equal(big.name, 'high');
-  assert.equal(big.coins, 42);
+  assert.equal(big.balls, 42);
   assert.equal(big.durationMs, 3800);
 
   const mega = ui.resolveWinProfile_('mega', 3000, 100);
@@ -98,17 +100,17 @@ test('el perfil escala con el ratio: low < 1x, mid 1-10x y high >= 10x', async (
   // Sin apuesta el importe sigue siendo autoritativo: perfil bajo, sin inventar.
   const noBet = ui.resolveWinProfile_('win', 250, null);
   assert.equal(noBet.name, 'low');
-  assert.equal(noBet.coins, 8);
+  assert.equal(noBet.balls, 8);
 
   const noCents = ui.resolveWinProfile_('win', null, 100);
   assert.equal(noCents.name, 'low');
-  assert.equal(noCents.coins, 0);
+  assert.equal(noCents.balls, 0);
 });
 
-test('showWinOverlay aplica la clase del perfil, lanza sus monedas y se cierra', async () => {
+test('showWinOverlay aplica la clase del perfil, lanza sus pelotas y se cierra', async () => {
   const ui = await loadUi();
   const classes = new Set();
-  const coins = [];
+  const balls = [];
   const node = {
     hidden: true,
     offsetWidth: 0,
@@ -122,10 +124,10 @@ test('showWinOverlay aplica la clase del perfil, lanza sus monedas y se cierra',
   ui.refs.winOverlay = node;
   ui.refs.winAmount = { textContent: '' };
   ui.refs.winCurrency = { textContent: '' };
-  ui.refs.winRain = { textContent: '' };
-  ui.fx = { coinRain: ({ count }) => coins.push(count) };
+  ui.refs.winRain = { textContent: '', childElementCount: 0 };
+  ui.fx = { ballRain: ({ count }) => balls.push(count) };
 
-  // Bajo: 8 monedas y clase `is-low`. En Node no hay rAF, asi que el conteo
+  // Bajo: 8 pelotas y clase `is-low`. En Node no hay rAF, asi que el conteo
   // escribe directamente el importe formateado (respaldo limpio).
   assert.equal(
     ui.showWinOverlay('win', '0,50', { cents: 50, profile: ui.resolveWinProfile_('win', 50, 100) }),
@@ -133,7 +135,7 @@ test('showWinOverlay aplica la clase del perfil, lanza sus monedas y se cierra',
   );
   assert.equal(node.hidden, false);
   assert.ok(node.classList.contains('is-low'));
-  assert.deepEqual(coins, [8]);
+  assert.deepEqual(balls, [8]);
   assert.equal(ui.refs.winAmount.textContent, '0,50');
   assert.equal(ui.refs.winCurrency.textContent, 'EUR');
 
@@ -141,19 +143,19 @@ test('showWinOverlay aplica la clase del perfil, lanza sus monedas y se cierra',
   assert.equal(node.hidden, true);
   assert.equal(classes.size, 0, 'el cierre debe limpiar la clase de perfil');
 
-  // Un 0,05x no lanza monedas, pero mantiene la clase sutil.
-  coins.length = 0;
+  // Un 0,05x no lanza pelotas, pero mantiene la clase sutil.
+  balls.length = 0;
   ui.showWinOverlay('win', '0,05', { cents: 5, profile: ui.resolveWinProfile_('win', 5, 100) });
-  assert.deepEqual(coins, []);
+  assert.deepEqual(balls, []);
   assert.ok(node.classList.contains('is-low'));
   ui.hideWinOverlay({ immediate: true });
 
-  // Alto: 42 monedas y rebote marcado (clase `is-high`).
+  // Alto: 42 pelotas y rebote marcado (clase `is-high`).
   ui.showWinOverlay('epic', '120,00', {
     cents: 12000,
     profile: ui.resolveWinProfile_('epic', 12000, 100)
   });
-  assert.deepEqual(coins, [42]);
+  assert.deepEqual(balls, [42]);
   assert.ok(node.classList.contains('is-high'));
   ui.hideWinOverlay({ immediate: true });
 

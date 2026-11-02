@@ -24,8 +24,8 @@ const THEME_PATH = path.join(PUBLIC_DIR, 'src', 'css', 'theme.css');
 const INDEX_PATH = path.join(PUBLIC_DIR, 'index.html');
 const LOGO_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'MERIDIANOBET-CRUSH-LOGO.webp');
 const LOGO_MASTER_PATH = path.join(ROOT_DIR, 'design', 'MeridianoBet Sports Crush Logo.png');
-const WIN_ART_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'victoria_dulce.webp');
-const WIN_MASTER_PATH = path.join(ROOT_DIR, 'design', 'victoria_dulce.png');
+const WIN_ART_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'victoria_deportiva.webp');
+const WIN_MASTER_PATH = path.join(ROOT_DIR, 'design', 'victoria_deportiva.png');
 const WIN_SOUND_PATH = path.join(PUBLIC_DIR, 'src', 'assets', 'AUDIO-WIN-2.MP3');
 const SFX_PATH = path.join(PUBLIC_DIR, 'ui', 'audio', 'sfx.js');
 const PUBLIC_SRC_DIR = path.join(PUBLIC_DIR, 'src');
@@ -325,16 +325,20 @@ test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera d
   const css = read(STYLE_PATH);
   const ui = read(path.join(PUBLIC_DIR, 'ui', 'renderers', 'GameView.js'));
 
-  // El maestro (2,7 MB) se archiva en `design/`: no viaja al CDN ni se puede
+  // El maestro (1,8 MB) se archiva en `design/`: no viaja al CDN ni se puede
   // colar como respaldo en `public/src/assets`.
-  assert.ok(fs.existsSync(WIN_MASTER_PATH), 'Falta el maestro design/victoria_dulce.png');
+  assert.ok(fs.existsSync(WIN_MASTER_PATH), 'Falta el maestro design/victoria_deportiva.png');
   assert.ok(fs.statSync(WIN_MASTER_PATH).size > 0, 'El maestro del cartel esta vacio');
   assert.ok(
-    !fs.existsSync(path.join(PUBLIC_DIR, 'src', 'assets', '¡Victoria dulce!.png')),
+    !fs.existsSync(path.join(PUBLIC_DIR, 'src', 'assets', 'Victoria deportiva brillante.png')),
     'El PNG maestro no debe quedarse en public/src/assets'
   );
+  assert.ok(
+    !fs.existsSync(path.join(PUBLIC_DIR, 'src', 'assets', 'victoria_dulce.webp')),
+    'El cartel anterior (victoria_dulce.webp) ya no se sirve'
+  );
 
-  assert.ok(fs.existsSync(WIN_ART_PATH), 'Falta public/src/assets/victoria_dulce.webp');
+  assert.ok(fs.existsSync(WIN_ART_PATH), 'Falta public/src/assets/victoria_deportiva.webp');
   const binary = fs.readFileSync(WIN_ART_PATH);
   assert.equal(binary.toString('ascii', 0, 4), 'RIFF', 'El cartel debe ser un contenedor RIFF/WebP');
   assert.equal(binary.toString('ascii', 8, 12), 'WEBP', 'El cartel debe ser un WebP real');
@@ -350,26 +354,30 @@ test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera d
     'El cartel debe ser un WebP lossy (VP8), no un PNG disfrazado'
   );
 
-  // Sin deformar: 1152 x 768 es el 75 % exacto del maestro 1536 x 1024 (3:2).
+  // Sin deformar. `build:win` recorta antes de reescalar, asi que la caja util
+  // del maestro es 1621 x 878 (el lienzo 1774 x 887 tiene aire transparente a
+  // los lados) y 1280 x 693 conserva esa relacion 1,846:1.
   const master = fs.readFileSync(WIN_MASTER_PATH);
-  assert.equal(master.toString('ascii', 1, 4), 'PNG', 'design/victoria_dulce.png debe ser el PNG maestro');
+  assert.equal(master.toString('ascii', 1, 4), 'PNG', 'design/victoria_deportiva.png debe ser el PNG maestro');
   const masterWidth = master.readUInt32BE(16);
   const masterHeight = master.readUInt32BE(20);
   const width = binary.readUIntLE(chunks[0].offset + 12, 3) + 1;
   const height = binary.readUIntLE(chunks[0].offset + 15, 3) + 1;
 
-  assert.equal(width, 1152, 'El cartel debe servirse a 1152 px de ancho (ver build:win)');
-  assert.equal(height, 768, 'El cartel debe servirse a 768 px de alto (ver build:win)');
+  assert.equal(masterWidth, 1774, 'El maestro deportivo mide 1774 px de ancho');
+  assert.equal(masterHeight, 887, 'El maestro deportivo mide 887 px de alto');
+  assert.equal(width, 1280, 'El cartel debe servirse a 1280 px de ancho (ver build:win)');
+  assert.equal(height, 693, 'El cartel debe servirse a 693 px de alto (caja recortada)');
   assert.ok(
-    Math.abs(width / height - masterWidth / masterHeight) < 0.002,
-    `El cartel deforma el maestro: ${width}x${height} contra ${masterWidth}x${masterHeight}`
+    Math.abs(width / height - 1621 / 878) < 0.002,
+    `El cartel deforma la caja recortada del maestro: ${width}x${height} contra 1621x878`
   );
 
-  // Peso: el lienzo completo a q=90 pesa 573 KB y se pinta a 640 px CSS como
-  // maximo. 1152 px conservan el detalle retina y dejan el archivo en ~423 KB.
+  // Peso: el lienzo completo a q=90 pesa 816 KB y se pinta a 700 px CSS como
+  // maximo. 1280 px conservan el detalle retina y dejan el archivo en ~317 KB.
   assert.ok(
-    binary.length < 450 * 1024,
-    `El cartel pesa ${(binary.length / 1024).toFixed(1)} KB (objetivo < 450 KB)`
+    binary.length < 400 * 1024,
+    `El cartel pesa ${(binary.length / 1024).toFixed(1)} KB (objetivo < 400 KB)`
   );
 
   // Capa dedicada, con el arte, la lluvia y el importe que rellena `GameView`.
@@ -379,8 +387,18 @@ test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera d
     /<div class="win" id="win-overlay" hidden aria-hidden="true">/,
     'Falta la capa #win-overlay'
   );
-  assert.match(html, /src="\/src\/assets\/victoria_dulce\.webp"/, 'La capa debe usar el WebP optimizado');
-  assert.match(html, /id="win-rain"/, 'Falta el contenedor de la lluvia de monedas');
+  assert.match(
+    html,
+    /src="\/src\/assets\/victoria_deportiva\.webp"/,
+    'La capa debe usar el WebP optimizado del cartel deportivo'
+  );
+  // La caja reservada por el HTML tiene que coincidir con el WebP (sin saltos).
+  assert.match(
+    html,
+    /width="1280" height="693"/,
+    'El HTML debe reservar la caja 1280x693 del cartel'
+  );
+  assert.match(html, /id="win-rain"/, 'Falta el contenedor de la lluvia de pelotas');
   assert.match(html, /id="win-amount"/, 'Falta el contador del premio');
   assert.match(html, /id="win-currency"/, 'Falta la divisa del premio');
 
@@ -395,6 +413,19 @@ test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera d
     'Los rayos deben girar con `rotateRays`'
   );
 
+  // El cartel apaisado se centra y se adapta: techo de escritorio (700 px),
+  // ancho de movil (92vw) y alto disponible (54vh x 1,85).
+  assert.match(
+    css,
+    /\.win__art\s*\{[^}]*width:\s*min\(700px,\s*92vw,\s*calc\(54vh \* 1\.85\)\);/,
+    'El cartel debe escalar con sus tres techos (escritorio, movil y alto)'
+  );
+  assert.match(
+    css,
+    /\.win__stage\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center;/,
+    'El cartel y el importe deben quedar centrados en el velo'
+  );
+
   // Logica: la capa se abre para cualquier victoria y la intensidad escala con
   // `win / bet` (antes solo big/mega/epic la abrian y el 88 % de las victorias
   // del modo base se quedaban en el banner).
@@ -407,9 +438,9 @@ test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera d
   assert.match(ui, /zone: 'sides'/);
 
   // Tres perfiles con su lluvia y permanencia, y autocierre escalado por nivel.
-  assert.match(ui, /low: Object\.freeze\(\{[\s\S]*?coins: 8,[\s\S]*?durationMs: 1700,/);
-  assert.match(ui, /mid: Object\.freeze\(\{[\s\S]*?coins: 22,[\s\S]*?durationMs: 3000,/);
-  assert.match(ui, /high: Object\.freeze\(\{[\s\S]*?coins: 42,[\s\S]*?durationMs: 4200,/);
+  assert.match(ui, /low: Object\.freeze\(\{[\s\S]*?balls: 8,[\s\S]*?durationMs: 1700,/);
+  assert.match(ui, /mid: Object\.freeze\(\{[\s\S]*?balls: 22,[\s\S]*?durationMs: 3000,/);
+  assert.match(ui, /high: Object\.freeze\(\{[\s\S]*?balls: 42,[\s\S]*?durationMs: 4200,/);
   assert.match(
     ui,
     /WIN_HIGH_MS = Object\.freeze\(\{ big: 3800, mega: 4200, epic: 4600 \}\)/,
@@ -432,8 +463,8 @@ test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera d
   );
   assert.match(
     ui,
-    /if \(this\.fx && !REDUCED_MOTION && tier\.coins > 0\) \{/,
-    'Sin movimiento no se lanza la lluvia de monedas'
+    /if \(this\.fx && !REDUCED_MOTION && tier\.balls > 0\) \{/,
+    'Sin movimiento no se lanza la lluvia de pelotas'
   );
   assert.match(ui, /rollWinAmount_\(cents, amountText, tier\.rollMs\)/);
 
@@ -456,6 +487,65 @@ test('el cartel de victoria se sirve en WebP con alfa y el maestro queda fuera d
     css,
     /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.win\.is-high \.win__art \{ animation: none; \}/,
     'La media query debe apagar tambien el rebote de los premios altos'
+  );
+});
+
+test('la victoria llueve los balones del tablero en lugar de caramelos', () => {
+  const fx = read(path.join(PUBLIC_DIR, 'ui', 'renderers', 'fx.js'));
+  const css = read(STYLE_PATH);
+  const ui = read(path.join(PUBLIC_DIR, 'ui', 'renderers', 'GameView.js'));
+
+  // La municion sale del mapa de simbolos: los nueve balones de `assets/slot`,
+  // que son los mismos PNG que el jugador acaba de ver en la rejilla. El logo
+  // (s10) no cae: es scatter y multiplicador, no pelota.
+  assert.match(
+    fx,
+    /import \{ SYMBOLS \} from '\.\.\/lib\/format\.js';/,
+    'fx.js debe reutilizar el mapa SYMBOLS en lugar de duplicar rutas'
+  );
+  assert.match(fx, /const BALL_FACES = Object\.freeze\(\[/);
+  assert.match(
+    fx,
+    /\['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9'\]/,
+    'La lluvia debe usar los nueve balones regulares'
+  );
+  assert.match(fx, /\.map\(\(key\) => SYMBOLS\[key\]\)\);/);
+
+  // Cada particula es una imagen de balon con su glifo como respaldo.
+  assert.match(fx, /function ballRain\(/);
+  assert.match(fx, /const face = pick\(BALL_FACES\);/);
+  assert.match(fx, /img\.src = face\.image;/);
+  assert.match(fx, /glyph\.textContent = face\.glyph;/);
+  assert.match(fx, /el\.append\(glyph, img\);/);
+  assert.match(
+    fx,
+    /img\.addEventListener\('error', \(\) => img\.remove\(\), \{ once: true \}\)/,
+    'Un PNG que no llega debe dejar el glifo del simbolo, no un hueco'
+  );
+  assert.match(fx, /return \{ clear, sparkBurst, flash, ballRain, mega \};/);
+
+  // Ni caramelos ni monedas: el generador de la victoria solo conoce balones.
+  assert.doesNotMatch(fx, /COIN_FACES|coinRain|fx__coin/, 'El generador no debe volver a las monedas');
+  assert.doesNotMatch(fx, /[\u{1F36C}\u{1F36D}\u{1FA99}]/u, 'Sin emojis de caramelo ni de moneda');
+
+  // Animacion propia y caja cuadrada: el glifo y la pelota comparten celda y la
+  // imagen se dibuja con `contain` para no deformar el balon.
+  assert.match(css, /\.fx__ball\s*\{[^}]*animation:\s*ball-fall/);
+  assert.match(css, /@keyframes ball-fall\s*\{/);
+  assert.match(css, /\.fx__ball-img\s*\{[^}]*object-fit:\s*contain;/);
+  assert.match(css, /\.fx__ball > \* \{ grid-area: 1 \/ 1; \}/, 'Glifo y pelota comparten celda');
+  assert.doesNotMatch(css, /\.fx__coin|coin-fall/, 'El CSS ya no pinta monedas');
+
+  // La pantalla de victoria le pasa su contenedor y cae por los laterales.
+  assert.match(
+    ui,
+    /this\.fx\.ballRain\(\{\s*count: tier\.balls,\s*host: this\.refs\.winRain,\s*zone: 'sides'\s*\}\)/,
+    'La pantalla de victoria debe llover balones por los laterales'
+  );
+  assert.match(
+    ui,
+    /const WIN_ART_SRC = '\/src\/assets\/victoria_deportiva\.webp';/,
+    'La precarga debe apuntar al cartel nuevo'
   );
 });
 
